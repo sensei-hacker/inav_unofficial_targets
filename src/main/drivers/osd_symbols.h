@@ -165,6 +165,9 @@
 #define SYM_SWITCH_INDICATOR_MID    0xD1  // 209 Switch Mid
 #define SYM_SWITCH_INDICATOR_HIGH   0xD2  // 210 Switch Low
 #define SYM_AH                      0xD3  // 211 Amphours symbol
+#define SYM_GLIDE_DIST              0xD0  // 208 Glide Distance
+#define SYM_GLIDE_MINS              0xD1  // 209 Glide Minutes
+
 
 #define SYM_LOGO_START              0x101 // 257 to 280, INAV logo
 #define SYM_LOGO_WIDTH              6
