@@ -102,6 +102,7 @@
 #define BNO055_I2C_BUS          I2C_EXT_BUS
 
 #define USE_BARO
+#define USE_BARO_DPS310
 
 #if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
   #define USE_BARO_BMP280
