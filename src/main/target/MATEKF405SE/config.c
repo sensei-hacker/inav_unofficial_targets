@@ -29,6 +29,8 @@
 #include "fc/fc_msp_box.h"
 #include "io/piniobox.h"
 
+#include "io/piniobox.h"
+
 // alternative defaults settings for MATEKF405SE targets
 void targetConfiguration(void)
 {  
