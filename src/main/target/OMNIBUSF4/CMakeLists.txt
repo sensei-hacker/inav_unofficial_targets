@@ -10,3 +10,5 @@ target_stm32f405xg(OMNIBUSF4V3_S6_SS)
 # OMNIBUSF4V3 is a (almost identical) variant of OMNIBUSF4PRO target,
 # except for an inverter on UART6.
 target_stm32f405xg(OMNIBUSF4V3)
+# Same as pro, but with softserial on PPM and LED like BF uses
+target_stm32f405xg(OMNIBUSF4PRO_SOFTSERIAL)
