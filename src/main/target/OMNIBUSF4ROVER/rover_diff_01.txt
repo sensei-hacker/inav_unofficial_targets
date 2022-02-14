@@ -1,0 +1,106 @@
+ start the command batch
+batch start
+
+# resources
+
+# mixer
+
+# servo mix
+smix reset
+
+smix 0 0 33 100 0 -1
+smix 1 1 33 100 0 -1
+smix 2 2 34 100 0 -1
+smix 3 3 34 100 0 -1
+smix 4 4 33 100 0 -1
+smix 5 5 34 100 0 -1
+
+# servo
+
+# safehome
+
+# logic
+logic 0 1 -1 1 2 17 0 0 0
+logic 1 1 -1 1 2 17 0 1 0
+logic 2 0 0 18 0 0 0 -500 0
+logic 3 1 -1 15 2 14 0 12 0
+logic 4 1 -1 16 4 3 0 12 0
+logic 5 1 -1 16 2 28 4 3 0
+logic 6 1 -1 17 4 5 0 100 0
+logic 7 1 -1 14 4 4 4 6 0
+logic 8 1 -1 15 4 4 4 6 0
+logic 9 1 -1 15 4 7 0 500 0
+logic 10 1 -1 15 4 8 0 500 0
+logic 11 1 -1 18 0 3 4 9 0
+logic 12 1 -1 18 0 4 4 10 0
+logic 13 1 0 18 0 3 0 -500 0
+logic 14 1 0 18 0 4 0 -500 0
+
+# gvar
+
+# pid
+
+# feature
+feature -AIRMODE
+feature PWM_OUTPUT_ENABLE
+
+# beeper
+
+# map
+
+# serial
+serial 0 0 115200 115200 0 115200
+serial 5 64 115200 115200 0 115200
+
+# led
+
+# color
+
+# mode_color
+
+# aux
+aux 0 0 1 1825 2100
+
+# adjrange
+
+# rxrange
+
+# temp_sensor
+
+# wp
+#wp 0 invalid
+
+# osd_layout
+
+# master
+set acc_hardware = MPU6000
+set acczero_x = 36
+set acczero_y = -23
+set acczero_z = -144
+set accgain_x = 4092
+set accgain_y = 4138
+set accgain_z = 4008
+set align_mag = CW270FLIP
+set mag_hardware = NONE
+set baro_hardware = NONE
+set receiver_type = SERIAL
+set serialrx_provider = SBUS
+set blackbox_device = SERIAL
+set sdcard_detect_inverted = OFF
+set motor_pwm_protocol = STANDARD
+set platform_type = ROVER
+set model_preview_type = 31
+set applied_defaults = 1
+
+# profile
+profile 1
+
+
+# battery_profile
+battery_profile 1
+
+
+# end the command batch
+batch end
+save
+

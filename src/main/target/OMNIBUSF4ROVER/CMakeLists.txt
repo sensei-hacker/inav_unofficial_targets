@@ -1,0 +1,2 @@
+target_stm32f405xg(OMNIBUSF4ROVER)
+target_stm32f405xg(OMNIBUSF4V3_ROVER)
