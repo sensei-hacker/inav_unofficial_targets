@@ -37,7 +37,9 @@ const timerHardware_t timerHardware[] = {
     DEF_TIM(TIM8,  CH4, PC9,  TIM_USE_ANY,                 0, 0), // S6_IN // pad labelled CH6 on OMNIBUSF4PRO
 
     DEF_TIM(TIM3,  CH3, PB0,  TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR,               0, 0), // S1_OUT D1_ST7
-    DEF_TIM(TIM3,  CH4, PB1,  TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR,               0, 0), // S2_OUT D1_ST2
+
+# PB1 can use TIM1_CH3N (inverted), TIM3_CH4, TIM8_CH3N (an inverted timer) 
+    DEF_TIM(TIM1,  CH3N, PB1, TIM_USE_MC_MOTOR | TIM_USE_FW_SERVO,               0, 0), // S2_OUT D1_ST2
     DEF_TIM(TIM2,  CH4, PA3,  TIM_USE_MC_MOTOR | TIM_USE_FW_SERVO,               0, 1), // S3_OUT D1_ST6
     DEF_TIM(TIM2,  CH3, PA2,  TIM_USE_MC_MOTOR | TIM_USE_FW_SERVO,               0, 0), // S4_OUT D1_ST1
 
