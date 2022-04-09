@@ -3174,11 +3174,11 @@ Pitch Angle deadband when soaring mode enabled (deg). Angle mode inactive within
 
 ### nav_fw_wp_tracking_accuracy
 
-Sets the maximum allowed distance from the waypoint course line when waypoint tracking is active [cm]. When the craft is outside this distance it will head toward the the course line as quickly as possible. The course tracking response can be tuned by making small changes to the accuracy setting, higher values damp the response. A value of 250 is a good starting point. If set to 0 course tracking is disabled and the craft will head directly to the next waypoint from whatever position was achieved after the last waypoint turn.
+Waypoint tracking accuracy forces the craft to quickly head toward and track along the waypoint course line as closely as possible. Settings 1 to 10 adjust the course tracking response. Higher values dampen the response reducing possible overshoot. A value of 5 is a good starting point. Set to 0 to disable.
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 0 | 0 | 1000 |
+| 0 | 0 | 10 |
 
 ---
 
