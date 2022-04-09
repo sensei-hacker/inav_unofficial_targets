@@ -34,6 +34,7 @@ src/main/flight/imu.c
 src/main/flight/pid.c
 src/main/flight/secondary_dynamic_gyro_notch.c
 src/main/flight/servos.c
+src/main/flight/servos.h
 src/main/flight/wind_estimator.c
 src/main/io/displayport_msp_osd.h
 src/main/io/gps.c
@@ -42,6 +43,7 @@ src/main/io/gps_nmea.c
 src/main/io/gps_ublox.c
 src/main/io/osd.c
 src/main/io/osd.h
+src/main/msp/msp_protocol.h
 src/main/navigation/navigation.c
 src/main/navigation/navigation_fixedwing.c
 src/main/navigation/navigation_fw_launch.c
