@@ -860,6 +860,10 @@ void initializePositionEstimator(void)
  */
 void updatePositionEstimator(void)
 {
+    if (ARMING_FLAG(SIMULATOR_MODE)) {
+        posEstimator.est.pos.z = baro.BaroAlt;
+        //return;
+    }
     static bool isInitialized = false;
 
     if (!isInitialized) {
