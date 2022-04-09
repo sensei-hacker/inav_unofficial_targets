@@ -347,14 +347,11 @@ bool gpsUpdate(void)
         return false;
     }
 
-#ifdef USE_SIMULATOR
     if (ARMING_FLAG(SIMULATOR_MODE)) {
         gpsUpdateTime();
         gpsSetState(GPS_RUNNING);
-        sensorsSet(SENSOR_GPS);
         return gpsSol.flags.hasNewData;
     }
-#endif
 #ifdef USE_FAKE_GPS
     return gpsFakeGPSUpdate();
 #else
