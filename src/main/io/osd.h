@@ -264,6 +264,7 @@ typedef enum {
     OSD_FW_LEVEL_TRIM,
     OSD_GLIDE_TIME_REMAINING,
     OSD_GLIDE_RANGE,
+    OSD_CLIMB_EFFICIENCY,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
