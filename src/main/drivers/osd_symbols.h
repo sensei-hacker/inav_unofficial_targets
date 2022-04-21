@@ -168,6 +168,11 @@
 #define SYM_GLIDE_DIST              0xD0  // 208 Glide Distance
 #define SYM_GLIDE_MINS              0xD1  // 209 Glide Minutes
 
+#define SYM_MAH_V_FT_0              0xD5  // 213 mAh/v-ft left
+#define SYM_MAH_V_FT_1              0xD6  // 214 mAh/v-ft right
+#define SYM_MAH_V_M_0               0xD7  // 215 mAh/v-m left
+#define SYM_MAH_V_M_1               0xD8  // 216 mAh/v-m right
+
 
 #define SYM_LOGO_START              0x101 // 257 to 280, INAV logo
 #define SYM_LOGO_WIDTH              6
