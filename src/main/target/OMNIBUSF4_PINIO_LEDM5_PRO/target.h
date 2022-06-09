@@ -17,18 +17,18 @@
 
 #pragma once
 
-//Same target as OMNIBUSF4PRO with LED strip in M5
-#ifdef OMNIBUSF4PRO_LEDSTRIPM5
-#define OMNIBUSF4PRO
+//Same target as OMNIBUSF4_PINIOPRO with LED strip in M5
+#ifdef OMNIBUSF4_PINIOPRO_LEDSTRIPM5
+#define OMNIBUSF4_PINIOPRO
 #endif
-//Same target as OMNIBUSF4V3 with softserial in M5 and M6
-#if defined(OMNIBUSF4V3_S6_SS) || defined(OMNIBUSF4V3_S5S6_SS) || defined(OMNIBUSF4V3_S5_S6_2SS)
-#define OMNIBUSF4V3
+//Same target as OMNIBUSF4_PINIOV3 with softserial in M5 and M6
+#if defined(OMNIBUSF4_PINIOV3_S6_SS) || defined(OMNIBUSF4_PINIOV3_S5S6_SS) || defined(OMNIBUSF4_PINIOV3_S5_S6_2SS)
+#define OMNIBUSF4_PINIOV3
 #endif
 
-#ifdef OMNIBUSF4PRO
+#ifdef OMNIBUSF4_PINIOPRO
 #define TARGET_BOARD_IDENTIFIER "OBSD"
-#elif defined(OMNIBUSF4V3)
+#elif defined(OMNIBUSF4_PINIOV3)
 #define TARGET_BOARD_IDENTIFIER "OB43"
 #elif defined(DYSF4PRO)
 #define TARGET_BOARD_IDENTIFIER "DYS4"
@@ -72,7 +72,7 @@
 #define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_BUS         BUS_SPI1
 
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
   #define USE_IMU_MPU6000
   #define IMU_MPU6000_ALIGN       CW270_DEG
 #else
@@ -81,7 +81,7 @@
 #endif
 
 // Support for OMNIBUS F4 PRO CORNER - it has ICM20608 instead of MPU6000
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
   #define MPU6500_CS_PIN          MPU6000_CS_PIN
   #define MPU6500_SPI_BUS         MPU6000_SPI_BUS
   #define USE_IMU_MPU6500
@@ -103,7 +103,7 @@
 
 #define USE_BARO
 
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
   #define USE_BARO_BMP280
   #define BMP280_SPI_BUS        BUS_SPI3
   #define BMP280_CS_PIN         PB3 // v1
@@ -127,7 +127,7 @@
 #define VBUS_SENSING_PIN        PC5
 #define VBUS_SENSING_ENABLED
 
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
 #define USE_UART_INVERTER
 #endif
 
@@ -135,7 +135,7 @@
 #define UART1_RX_PIN            PA10
 #define UART1_TX_PIN            PA9
 #define UART1_AHB1_PERIPHERALS  RCC_AHB1Periph_DMA2
-#if defined(OMNIBUSF4PRO)
+#if defined(OMNIBUSF4_PINIOPRO)
 #define INVERTER_PIN_UART1_RX PC0 // PC0 has never been used as inverter control on genuine OMNIBUS F4 variants, but leave it as is since some clones actually implement it.
 #endif
 
@@ -146,33 +146,33 @@
 #define USE_UART6
 #define UART6_RX_PIN            PC7
 #define UART6_TX_PIN            PC6
-#if defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOV3)
   #define INVERTER_PIN_UART6_RX PC8
   #define INVERTER_PIN_UART6_TX PC9
 #endif
 
-#if defined(OMNIBUSF4V3) && !(defined(OMNIBUSF4V3_S6_SS) || defined(OMNIBUSF4V3_S5S6_SS) || defined(OMNIBUSF4V3_S5_S6_2SS))
+#if defined(OMNIBUSF4_PINIOV3) && !(defined(OMNIBUSF4_PINIOV3_S6_SS) || defined(OMNIBUSF4_PINIOV3_S5S6_SS) || defined(OMNIBUSF4_PINIOV3_S5_S6_2SS))
 #define USE_SOFTSERIAL1
 #define SOFTSERIAL_1_RX_PIN     PC6     // shared with UART6 TX
 #define SOFTSERIAL_1_TX_PIN     PC6     // shared with UART6 TX
 
 #define SERIAL_PORT_COUNT       5       // VCP, USART1, USART3, USART6, SOFTSERIAL1
 
-#elif defined(OMNIBUSF4V3_S6_SS)        // one softserial on S6
+#elif defined(OMNIBUSF4_PINIOV3_S6_SS)        // one softserial on S6
 #define USE_SOFTSERIAL1
 #define SOFTSERIAL_1_RX_PIN     PA8     // S6 output
 #define SOFTSERIAL_1_TX_PIN     PA8     // S6 output
 
 #define SERIAL_PORT_COUNT       5       // VCP, USART1, USART3, USART6, SOFTSERIAL1
 
-#elif defined(OMNIBUSF4V3_S5S6_SS)      // one softserial on S5/RX S6/TX
+#elif defined(OMNIBUSF4_PINIOV3_S5S6_SS)      // one softserial on S5/RX S6/TX
 #define USE_SOFTSERIAL1
 #define SOFTSERIAL_1_RX_PIN     PA1     // S5 output
 #define SOFTSERIAL_1_TX_PIN     PA8     // S6 output
 
 #define SERIAL_PORT_COUNT       5       // VCP, USART1, USART3, USART6, SOFTSERIAL1
 
-#elif defined(OMNIBUSF4V3_S5_S6_2SS)    // two softserials, one on S5 and one on S6
+#elif defined(OMNIBUSF4_PINIOV3_S5_S6_2SS)    // two softserials, one on S5 and one on S6
 #define USE_SOFTSERIAL1
 #define SOFTSERIAL_1_RX_PIN     PA1     // S5 output
 #define SOFTSERIAL_1_TX_PIN     PA1     // S5 output
@@ -183,10 +183,10 @@
 
 #define SERIAL_PORT_COUNT       6       // VCP, USART1, USART3, USART6, SOFTSERIAL1, SOFTSERIAL2
 
-#else                                   // One softserial on versions other than OMNIBUSF4V3
+#else                                   // One softserial on versions other than OMNIBUSF4_PINIOV3
 #define USE_SOFTSERIAL1
-#define SOFTSERIAL_1_RX_PIN     PC8     // pad labelled CH5 on OMNIBUSF4PRO
-#define SOFTSERIAL_1_TX_PIN     PC9     // pad labelled CH6 on OMNIBUSF4PRO
+#define SOFTSERIAL_1_RX_PIN     PC8     // pad labelled CH5 on OMNIBUSF4_PINIOPRO
+#define SOFTSERIAL_1_TX_PIN     PC9     // pad labelled CH6 on OMNIBUSF4_PINIOPRO
 
 #define SERIAL_PORT_COUNT       5       // VCP, USART1, USART3, USART6, SOFTSERIAL1
 #endif
@@ -195,7 +195,7 @@
 
 #define USE_SPI_DEVICE_1
 
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
   #define USE_SPI_DEVICE_2
   #define SPI2_NSS_PIN          PB12
   #define SPI2_SCK_PIN          PB13
@@ -204,7 +204,7 @@
 #endif
 
 #define USE_SPI_DEVICE_3
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
   #define SPI3_NSS_PIN          PA15
 #else
   #define SPI3_NSS_PIN          PB3
@@ -217,7 +217,7 @@
 #define MAX7456_SPI_BUS         BUS_SPI3
 #define MAX7456_CS_PIN          PA15
 
-#if defined(OMNIBUSF4PRO) || defined(OMNIBUSF4V3)
+#if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
   #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
   #define USE_SDCARD
   #define USE_SDCARD_SPI
@@ -276,7 +276,7 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         0xffff
 
-#ifdef OMNIBUSF4PRO
+#ifdef OMNIBUSF4_PINIOPRO
 #define CURRENT_METER_SCALE   265
 #endif
 
