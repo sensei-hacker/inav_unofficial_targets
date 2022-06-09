@@ -22,7 +22,7 @@ SKYSTARSF722HDPRO
 
 New additions are very much welcomed. If you've made your own target, please
 send a pull request or send me a zip of your files and I'll add it here.
-Improvements are also very much welcomed. Any addtions or improvements you
+Improvements are also very much welcomed. Any additions or improvements you
 make, please send a PR or let me know.
 
 Note we cannot generally provide support for the code here. This is just a
