@@ -4,26 +4,21 @@ Others add features to boards that are supported, such as adding PINIO or extra 
 
 Targets can be found in [src/main/target/](src/main/target/)
 
-targets available here include:
+Targets available here include:
 
-DYSF4PRO
-DYSF4PROV2
 GEPRCF722
 GRAVITYF7
 IFLIGHTF7_SXEMINI
 MATEKF405SE_PINIO
 MATEKF405SE_PINIO2
-OMNIBUSF4
-OMNIBUSF4PRO
-OMNIBUSF4PRO_LEDSTRIPM5
-OMNIBUSF4V3
-OMNIBUSF4V3_S5_S6_2SS
-OMNIBUSF4V3_S5S6_SS
-OMNIBUSF4V3_S6_SS
+OMNIBUSF4_PINIO:
+OMNIBUSF4_PINIOPRO
+OMNIBUSF4_PINIOV3
+OMNIBUSF4_PINIOV3_S5_S6_2SS
+OMNIBUSF4_PINIOV3_S5S6_SS
+OMNIBUSF4_PINIOV3_S6_SS
 SKYSTARSF405hd
 SKYSTARSF722HDPRO
-
-Targets are in [src/main/target/]
 
 New additions are very much welcomed. If you've made your own target, please
 send a pull request or send me a zip of your files and I'll add it here.
