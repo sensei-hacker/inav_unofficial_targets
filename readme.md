@@ -52,12 +52,12 @@ Please add in your target folder a readme.txt file saying what tyour target is f
 * Logic Conditions, Global Functions and Global Variables: you can program INAV with a GUI
 * And many more!
 
+
 Note we cannot generally provide support for the code here. This is just a 
 collection of targets that have been contributed by people like you. The maintainer
 of this repository (Sensei) didn't write this code and may not own the hardware.
 The only exception is Airbot Omnibus boards. The maintainer of this repo
 does own Omnibus flight controllers and is familiar with ONLY those boards.
-Otherwise, if you send me a sample board I *may* be able to help you, or maybe not.
 
 These files are not a product of the official inav project and are not endorsed
 by the project or affiliated with it. These files may or may not work well for you.
