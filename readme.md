@@ -22,7 +22,7 @@ SKYSTARSF722HDPRO
 
 New additions are very much welcomed. If you've made your own target, please
 send a pull request or send me a zip of your files and I'll add it here.
-Improvements are also very much welcomed. Any addtions or improvements you
+Improvements are also very much welcomed. Any additions or improvements you
 make, please send a PR or let me know.
 
 Note we cannot generally provide support for the code here. This is just a
@@ -41,10 +41,11 @@ an FC that isn't already supported, or to remap resources:
 
 
 
+Getting a new target added to the *offical* inav distribution has certain
+[requirements](https://github.com/iNavFlight/inav/blob/master/docs/policies/NEW_HARDWARE_POLICY.md).
+On the other hand, all targets are welcome here.
 
-* [INAV Discord Server](https://discord.gg/peg2hhbYwN)
-* [INAV Official on Facebook](https://www.facebook.com/groups/INAVOfficial)
-* [INAV Official on Telegram](https://t.me/INAVFlight)
+Please add in your target folder a readme.txt file saying what tyour target is for and how you've tested it.
 
 * Runs on the most popular F4, F7 and H7 flight controllers
 * On Screen Display (OSD) - both character and pixel style
@@ -61,6 +62,16 @@ an FC that isn't already supported, or to remap resources:
 * Advanced gyro filtering
 * Logic Conditions, Global Functions and Global Variables: you can program INAV with a GUI
 * And many more!
+
+Note we cannot generally provide support for the code here. This is just a 
+collection of targets that have been contributed by people like you. The maintainer
+of this repository (Sensei) didn't write this code and may not own the hardware.
+The only exception is Airbot Omnibus boards. The maintainer of this repo
+does own Omnibus flight controllers and is familiar with ONLY those boards.
+
+These files are not a product of the official inav project and are not endorsed
+by the project or affiliated with it. These files may or may not work well for you.
+They have been provided by people who made them for their own use and report that the files work for them.
 
 
 Official tool for INAV can be downloaded [here](https://github.com/iNavFlight/inav-configurator/releases). It can be run on Windows, MacOS and Linux machines and standalone application.  
