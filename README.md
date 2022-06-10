@@ -6,6 +6,7 @@ Targets can be found in [src/main/target/](src/main/target/)
 
 Targets available here include:
 
++ FLYWOOF411_1S
 + GEPRCF722
 + GRAVITYF7
 + IFLIGHTF7_SXEMINI
@@ -19,6 +20,7 @@ Targets available here include:
 + OMNIBUSF4_PINIOV3_S6_SS
 + SKYSTARSF405hd
 + SKYSTARSF722HDPRO
++ XROTOR_F7CONV
 
 New additions are very much welcomed. If you've made your own target, please
 send a pull request or send me a zip of your files and I'll add it here.
