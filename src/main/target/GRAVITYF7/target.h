@@ -17,8 +17,8 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "FLMO"
-#define USBD_PRODUCT_STRING "GRAVITYF7"
+#define TARGET_BOARD_IDENTIFIER "FLMD"
+#define USBD_PRODUCT_STRING  "GRAVITYF7"
 
 //#define USE_HARDWARE_PREBOOT_SETUP
 
@@ -96,7 +96,6 @@
 #define USE_RANGEFINDER
 #define RANGEFINDER_I2C_BUS                 BUS_I2C1
 
-
 // mag
 #define USE_MAG
 #define MAG_I2C_BUS                         BUS_I2C1
@@ -165,7 +164,10 @@
 
 // LED Strip
 #define USE_LED_STRIP
-#define WS2811_PIN                          PA15   //TIM2_CH1
+#define WS2811_PIN                           PA15
+#define WS2811_DMA_HANDLER_IDENTIFER         DMA1_ST5_HANDLER
+#define WS2811_DMA_STREAM                    DMA1_Stream5
+#define WS2811_DMA_CHANNEL                   DMA_CHANNEL_3
 
 
 
