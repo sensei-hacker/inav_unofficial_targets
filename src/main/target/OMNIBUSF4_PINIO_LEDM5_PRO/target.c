@@ -24,7 +24,7 @@
 #include "drivers/bus.h"
 #include "drivers/pinio.h"
 
-const timerHardware_t timerHardware[] = {
+timerHardware_t timerHardware[] = {
 #if defined(OMNIBUSF4_PINIOPRO) || defined(OMNIBUSF4_PINIOV3)
     DEF_TIM(TIM10, CH1, PB8,  TIM_USE_PPM,                  0, 0), // PPM
     DEF_TIM(TIM4,  CH4, PB9,  TIM_USE_ANY,                  0, 0), // S2_IN

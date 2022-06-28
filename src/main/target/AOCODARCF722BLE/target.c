@@ -28,7 +28,7 @@
 
 BUSDEV_REGISTER_SPI_TAG(busdev_mpu6000,     DEVHW_MPU6000,      MPU6000_SPI_BUS,    MPU6000_CS_PIN,     MPU6000_EXTI_PIN,       0,  DEVFLAGS_NONE,  IMU_MPU6000_ALIGN);
 
-const timerHardware_t timerHardware[] = {
+timerHardware_t timerHardware[] = {
     DEF_TIM(TIM1, CH3, PA10, TIM_USE_PPM, 0, 0),
 
     DEF_TIM(TIM8, CH1, PC6, TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR, 0, 0),                     // S1 

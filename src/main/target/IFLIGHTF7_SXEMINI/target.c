@@ -25,7 +25,7 @@
 
 // Board hardware definitions
 
-const timerHardware_t timerHardware[] = {
+timerHardware_t timerHardware[] = {
     DEF_TIM(TIM5, CH4, PA3, TIM_USE_PPM,                         0, 0), //RX2
     DEF_TIM(TIM8, CH3, PC8, TIM_USE_MC_MOTOR | TIM_USE_FW_SERVO, 0, 0), //M1
     DEF_TIM(TIM8, CH1, PC6, TIM_USE_MC_MOTOR | TIM_USE_FW_SERVO, 0, 0), //M2
