@@ -1,0 +1,2 @@
+target_stm32f745xg(OMNIBUSF7V2_SERVO_ON_LED)
+
