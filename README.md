@@ -6,6 +6,7 @@ Targets can be found in [src/main/target/](src/main/target/)
 
 Targets available here include:
 
+<<<<<<< HEAD
 + FLYWOOF411_1S
 + GEPRCF722
 + GRAVITYF7
@@ -21,15 +22,38 @@ Targets available here include:
 + SKYSTARSF405hd
 + SKYSTARSF722HDPRO
 + XROTOR_F7CONV
+=======
+* [INAV Discord Server](https://discord.gg/peg2hhbYwN)
+* [INAV Official on Facebook](https://www.facebook.com/groups/INAVOfficial)
+* [INAV Official on Telegram](https://t.me/INAVFlight)
+>>>>>>> 06ced6430 (Update README.md)
 
 New additions are very much welcomed. If you've made your own target, please
 send a pull request or send me a zip of your files and I'll add it here.
 Improvements are also very much welcomed. ANy addtions or improvements you
 make, please send a PR or let me know.
 
+<<<<<<< HEAD
 Here is some information about how you can make your own target, either to support
 an FC that isn't already supported, or to remap resources:
 [Building Custom Firmware](https://github.com/iNavFlight/inav/wiki/Building-custom-firmware)
+=======
+* Runs on the most popular F4, F7 and H7 flight controllers
+* On Screen Display (OSD) - both character and pixel style
+* DJI OSD integration: all elements, system messages and warnings
+* Outstanding performance out of the box
+* Position Hold, Altitude Hold, Return To Home and Missions
+* Excellent support for fixed wing UAVs: airplanes, flying wings 
+* Fully configurable mixer that allows to run any hardware you want: multirotor, fixed wing, rovers, boats and other experimental devices
+* Multiple sensor support: GPS, Pitot tube, sonar, lidar, temperature, ESC with BlHeli_32 telemetry
+* SmartAudio and IRC Tramp VTX support
+* Blackbox flight recorder logging
+* Telemetry: SmartPort, FPort, MAVlink, LTM
+* Multi-color RGB LED Strip support
+* Advanced gyro filtering
+* Logic Conditions, Global Functions and Global Variables: you can program INAV with a GUI
+* And many more!
+>>>>>>> 06ced6430 (Update README.md)
 
 Geting a new target added to the *offical* inav distribution has certain
 [requirements](https://github.com/iNavFlight/inav/blob/master/docs/policies/NEW_HARDWARE_POLICY.md).
@@ -72,15 +96,14 @@ See: https://github.com/iNavFlight/inav/blob/master/docs/Installation.md
 ## Documentation, support and learning resources
 * [INAV 5 on a flying wing full tutorial](https://www.youtube.com/playlist?list=PLOUQ8o2_nCLkZlulvqsX_vRMfXd5zM7Ha)
 * [INAV on a multirotor drone tutorial](https://www.youtube.com/playlist?list=PLOUQ8o2_nCLkfcKsWobDLtBNIBzwlwRC8)
-* [Target documentation](https://github.com/iNavFlight/inav/tree/master/docs/boards)
 * [Fixed Wing Guide](docs/INAV_Fixed_Wing_Setup_Guide.pdf)
 * [Autolaunch Guide](docs/INAV_Autolaunch.pdf)
 * [Modes Guide](docs/INAV_Modes.pdf)
 * [Wing Tuning Masterclass](docs/INAV_Wing_Tuning_Masterclass.pdf)
 * [Official documentation](https://github.com/iNavFlight/inav/tree/master/docs)
 * [Official Wiki](https://github.com/iNavFlight/inav/wiki)
-* [Video series by Painless360](https://www.youtube.com/playlist?list=PLYsWjANuAm4qdXEGFSeUhOZ10-H8YTSnH)
 * [Video series by Paweł Spychalski](https://www.youtube.com/playlist?list=PLOUQ8o2_nCLloACrA6f1_daCjhqY2x0fB)
+* [Target documentation](https://github.com/iNavFlight/inav/tree/master/docs/boards)
 
 ## Contributing
 
@@ -108,3 +131,5 @@ Before creating new issues please check to see if there is an existing one, sear
 Please refer to the development section in the [docs/development](https://github.com/iNavFlight/inav/tree/master/docs/development) folder.
 
 
+## INAV Releases
+https://github.com/iNavFlight/inav/releases
