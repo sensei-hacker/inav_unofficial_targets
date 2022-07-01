@@ -31,6 +31,9 @@
 #define BEEPER                              PC13
 #define BEEPER_INVERTED
 
+#define USE_PITOT_VIRTUAL
+
+
 // MPU6000
 #define MPU6000_CS_PIN                      PB0
 #define MPU6000_SPI_BUS                     BUS_SPI1
