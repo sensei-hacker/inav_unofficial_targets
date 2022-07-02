@@ -453,7 +453,7 @@ void updateClimbRateToAltitudeController(float desiredClimbRate, climbRateToAlti
 bool isNavHoldPositionActive(void);
 bool isLastMissionWaypoint(void);
 float getActiveWaypointSpeed(void);
-bool isWaypointNavTrackingActive(void);
+bool isWaypointNavTrackingRoute(void);
 
 void updateActualHeading(bool headingValid, int32_t newHeading);
 void updateActualHorizontalPositionAndVelocity(bool estPosValid, bool estVelValid, float newX, float newY, float newVelX, float newVelY);
