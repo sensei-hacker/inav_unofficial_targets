@@ -23,9 +23,12 @@
 /*** Indicators ***/
 #define LED0                    PB9			
 #define BEEPER                  PC13		
-#define BEEPER_INVERTED												
+#define BEEPER_INVERTED										
 
-#define SENSORS_SET (SENSOR_ACC | SENSOR_MAG | SENSOR_BARO)
+#define GYRO_INT_EXTI            PC4		
+			
+
+#define SENSORS_SET (SENSOR_ACC|SENSOR_MAG|SENSOR_BARO)
 
 /*** MPU6000 ***/
 #define USE_IMU_MPU6000
