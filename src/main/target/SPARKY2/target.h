@@ -29,6 +29,9 @@
 
 #define BEEPER                  PC9
 
+
+#define ENSURE_MPU_DATA_READY_IS_LOW
+
 #define USE_IMU_MPU9250
 #define IMU_MPU9250_ALIGN       CW270_DEG
 

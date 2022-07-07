@@ -25,6 +25,9 @@
 #define BEEPER                  PA4
 #define BEEPER_INVERTED
 
+#define GYRO_INT_EXTI            PC4
+
+
 // MPU6000
 #define USE_IMU_MPU6000
 #define IMU_MPU6000_ALIGN       CW90_DEG
