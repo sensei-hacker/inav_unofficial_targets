@@ -33,7 +33,6 @@
 #define BEEPER_OPT              PB7
 #define BEEPER_INVERTED
 
-// MPU6500
 #define MPU6500_CS_PIN          PC4
 #define MPU6500_SPI_BUS         BUS_SPI1
 #define USE_IMU_MPU6500
