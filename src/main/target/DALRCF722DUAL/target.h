@@ -32,6 +32,9 @@
 #define MPU6000_CS_PIN          PB0
 #define MPU6000_SPI_BUS         BUS_SPI1
 
+#define GYRO_INT_EXTI            PB10
+
+
 #define USE_VCP
 
 #define USE_UART1
