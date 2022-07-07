@@ -106,8 +106,7 @@
 
 #define IMU_MPU6000_ALIGN       CW0_DEG_FLIP
 
-#define USE_EXTI
-#define USE_MPU_DATA_READY_SIGNAL
+
 #define USE_IMU_MPU6000
 #endif
 
