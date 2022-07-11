@@ -47,15 +47,14 @@
 
 #include "flight/mixer.h"
 
-// RC Interpolation is not allowed to go below this value.
-#define RC_INTERPOLATION_MIN_FREQUENCY 15
-
 static pt3Filter_t rcSmoothFilter[4];
 static float rcStickUnfiltered[4];
-static uint16_t rcUpdateFrequency;
 
-uint16_t getRcUpdateFrequency(void) {
-    return rcUpdateFrequency;
+static void rcInterpolationInit(int rcFilterFreqency)
+{
+    for (int stick = 0; stick < 4; stick++) {
+        pt3FilterInit(&rcSmoothFilter[stick], pt3FilterGain(rcFilterFreqency, getLooptime() * 1e-6f));
+    }
 }
 
 static int32_t applyRcUpdateFrequencyMedianFilter(int32_t newReading)
@@ -153,3 +152,27 @@ void rcInterpolationApply(bool isRXDataNew, timeUs_t currentTimeUs)
         rcCommand[stick] = pt3FilterApply(&rcSmoothFilter[stick], rcStickUnfiltered[stick]);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
