@@ -60,9 +60,9 @@ typedef enum {
 } rxFrameState_e;
 
 typedef enum {
-    RX_TYPE_NONE        = 0,
-    RX_TYPE_SERIAL      = 1,
-    RX_TYPE_MSP         = 2
+    RX_TYPE_NONE = 0,
+    RX_TYPE_SERIAL,
+    RX_TYPE_MSP
 } rxReceiverType_e;
 
 typedef enum {
