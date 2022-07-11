@@ -196,16 +196,8 @@ static timeUs_t readyToUpdateFirmwareTimestamp = 0;
 static volatile uint16_t frameErrors = 0;
 
 static void reportFrameError(uint8_t errorReason) {
+    UNUSED(errorReason);
     frameErrors++;
-}
-
-static uint8_t bufferCount(void)
-{
-    if (rxBufferReadIndex > rxBufferWriteIndex) {
-        return NUM_RX_BUFFERS - rxBufferReadIndex + rxBufferWriteIndex;
-    } else {
-        return rxBufferWriteIndex - rxBufferReadIndex;
-    }
 }
 
 static void clearWriteBuffer(void)
@@ -630,8 +622,6 @@ static bool processFrame(const rxRuntimeConfig_t *rxRuntimeConfig)
         }
 
         sendNullFrame = false;
-
-        lastTelemetryFrameSentUs = currentTimeUs;
     }
 #endif
 
