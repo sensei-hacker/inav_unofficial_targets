@@ -28,5 +28,4 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-uint16_t getRcUpdateFrequency(void);
 void rcInterpolationApply(bool isRXDataNew, timeUs_t currentTimeUs);

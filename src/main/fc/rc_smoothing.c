@@ -75,11 +75,37 @@ static int32_t applyRcUpdateFrequencyMedianFilter(int32_t newReading)
     return medianFilterReady ? quickMedianFilter9(filterSamples) : newReading;
 }
 
+static int32_t applyRcUpdateFrequencyMedianFilter(int32_t newReading)
+{
+    #define RC_FILTER_SAMPLES_MEDIAN 9
+    static int32_t filterSamples[RC_FILTER_SAMPLES_MEDIAN];
+    static int filterSampleIndex = 0;
+    static bool medianFilterReady = false;
+
+    filterSamples[filterSampleIndex] = newReading;
+    ++filterSampleIndex;
+    if (filterSampleIndex == RC_FILTER_SAMPLES_MEDIAN) {
+        filterSampleIndex = 0;
+        medianFilterReady = true;
+    }
+
+    return medianFilterReady ? quickMedianFilter9(filterSamples) : newReading;
+}
+
 void rcInterpolationApply(bool isRXDataNew, timeUs_t currentTimeUs)
 {
     // Compute the RC update frequency
     static timeUs_t previousRcData;
-    static int filterFrequency;
+
+    if (isRXDataNew) {
+        const timeDelta_t delta = cmpTimeUs(currentTimeUs, previousRcData);
+        const float rcUpdateFrequency = applyRcUpdateFrequencyMedianFilter(1.0f / (delta * 0.000001f));
+
+        DEBUG_SET(DEBUG_ALWAYS, 0, rcUpdateFrequency);
+
+        previousRcData = currentTimeUs;
+    }
+
     static bool initDone = false;
 
     const float dT = US2S(getLooptime());
