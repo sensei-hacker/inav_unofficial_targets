@@ -80,7 +80,7 @@ static bool flashDeviceInit(void)
 {
     bool detected = false;
 
-    for (uint32_t idx = 0; idx <= ARRAYLEN(flashDrivers); idx++)
+    for (uint32_t idx = 0; idx <= sizeof(flashDrivers) / sizeof(flashDrivers[0]); idx++)
     {
         detected = flashDrivers[idx].init(0);
         if (detected)

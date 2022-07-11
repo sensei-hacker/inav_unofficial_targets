@@ -41,11 +41,6 @@
 #define SPI1_MISO_PIN PA6
 #define SPI1_MOSI_PIN PA7
 
-#define USE_IMU_ICM42605
-#define IMU_ICM42605_ALIGN      CW0_DEG
-#define ICM42605_SPI_BUS        BUS_SPI1
-#define ICM42605_CS_PIN         PA4
-
 #define USE_IMU_MPU6000
 #define IMU_MPU6000_ALIGN CW180_DEG
 #define MPU6000_SPI_BUS BUS_SPI1
@@ -56,6 +51,20 @@
 #define BMI270_SPI_BUS BUS_SPI1
 #define BMI270_CS_PIN PA4
 
+#ifdef MAMBAH743_2022B
+
+// SPI4 is used on the second MPU6000 gyro, we do not use it at the moment
+// #define USE_SPI_DEVICE_4
+// #define SPI4_SCK_PIN            PE12
+// #define SPI4_MISO_PIN           PE13
+// #define SPI4_MOSI_PIN           PE14
+
+#define USE_IMU_ICM42605
+#define IMU_ICM42605_ALIGN      CW0_DEG
+#define ICM42605_SPI_BUS        BUS_SPI1
+#define ICM42605_CS_PIN         PA4
+
+#endif
 
 // *************** SPI2 OSD ***********************
 #define USE_SPI_DEVICE_2
