@@ -166,9 +166,10 @@
 #define M25P16_CS_PIN           SPI2_NSS_PIN
 
 #define W25N01G_SPI_BUS         BUS_SPI2
-#define W25N01G_CS_PIN          PB12
-
-#else
+#define W25N01G_CS_PIN          SPI2_NSS_PIN
+#ifdef ZEEZF7V3
+#define SDCARD_SPI_BUS          BUS_SPI2
+#define SDCARD_CS_PIN           SPI2_NSS_PIN
 
 #define USE_SDCARD
 #define USE_SDCARD_SPI
@@ -191,9 +192,7 @@
 #define M25P16_CS_PIN           SPI1_NSS_PIN
 
 #define W25N01G_SPI_BUS         BUS_SPI1
-#define W25N01G_CS_PIN          PA4
-
-#endif
+#define W25N01G_CS_PIN          SPI1_NSS_PIN
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16

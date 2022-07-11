@@ -188,9 +188,6 @@ static void fportDataReceive(uint16_t c, void *data)
                 lastTelemetryFrameReceivedUs = currentTimeUs;
                 telemetryFrame = false;
             }
-
-            lastFrameReceivedUs = currentTimeUs;
-
             escapedCharacter = false;
         }
 
@@ -355,7 +352,6 @@ static bool fportProcessFrame(const rxRuntimeConfig_t *rxRuntimeConfig)
             clearToSend = false;
         }
 
-        lastTelemetryFrameSentUs = currentTimeUs;
     }
 
     mspPayload = NULL;
