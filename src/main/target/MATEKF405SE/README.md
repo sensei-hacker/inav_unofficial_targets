@@ -21,6 +21,8 @@
 * Built in inverter on UART2-RX for SBUS input
 * PPM/UART Shared: UART2-RX
 * Vbat filtered output power for VTX
+* 2x Motors & 7x Servos
+* 4x BEC + current sensor
 
 ### MATEKF405SE_PINIO
 Replaces UART 6 Tx with USER 1 for PINIO and UART 6 Rx with USER 2 for PINIO
