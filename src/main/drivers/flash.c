@@ -107,23 +107,6 @@ bool flashWaitForReady(timeMs_t timeoutMillis)
     return flash->waitForReady(timeoutMillis);
 }
 
-static flashDriver_t *flash;
-
-static bool flashDeviceInit(void)
-{
-    flash->eraseSector(address);
-}
-
-bool flashIsReady(void)
-{
-    flash->eraseCompletely();
-}
-
-bool flashWaitForReady(timeMs_t timeoutMillis)
-{
-    return flash->waitForReady(timeoutMillis);
-}
-
 void flashEraseSector(uint32_t address)
 {
     flash->eraseSector(address);
