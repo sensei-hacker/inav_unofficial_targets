@@ -34,6 +34,10 @@ For a list of features, changes and some discussion please review consult the re
 
 Official tool for INAV can be downloaded [here](https://github.com/iNavFlight/inav-configurator/releases). It can be run on Windows, MacOS and Linux machines and standalone application.  
 
+--------------------------------------------------------
+05/08/2022
+Added target BLACKPILLSYN as the STM32F41CEU6 Blackpill board and the modified  system_stm32f4xx.h and system_stm32f4xx.c file in Target folder to accomodate the 25Mhz of the Blackpill by WeAct Studio
+
 ### INAV Blackbox Explorer
 
 Tool for Blackbox logs analysis is available [here](https://github.com/iNavFlight/blackbox-log-viewer/releases)
