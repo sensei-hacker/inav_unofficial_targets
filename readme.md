@@ -1,14 +1,50 @@
-# INAV - navigation capable flight controller
+These are unofficial targets for [INAV](https://github.com/iNavFlight/inav).
+Some of the targets provide support for flight controller boards that do not have official INAV support.
+Others add features to boards that are supported, such as adding PINIO or extra servo outputs.
 
-![INAV](http://static.rcgroups.net/forums/attachments/6/1/0/3/7/6/a9088858-102-inav.png)
+Targets can be found in [src/main/target/](src/main/target/)
 
-# INAV Community
+Targets available here include:
+
+GEPRCF722
+GRAVITYF7
+IFLIGHTF7_SXEMINI
+MATEKF405SE_PINIO
+MATEKF405SE_PINIO2
+OMNIBUSF4_PINIO:
+OMNIBUSF4_PINIOPRO
+OMNIBUSF4_PINIOV3
+OMNIBUSF4_PINIOV3_S5_S6_2SS
+OMNIBUSF4_PINIOV3_S5S6_SS
+OMNIBUSF4_PINIOV3_S6_SS
+SKYSTARSF405hd
+SKYSTARSF722HDPRO
+
+New additions are very much welcomed. If you've made your own target, please
+send a pull request or send me a zip of your files and I'll add it here.
+Improvements are also very much welcomed. Any addtions or improvements you
+make, please send a PR or let me know.
+
+Note we cannot generally provide support for the code here. This is just a
+collection of targets that have been contributed by people like you. The maintainer
+of this repository (Sensei) didn't write this code and may not own the hardware.
+The only exception is Airbot Omnibus boards. The maintainer of this repo
+does own Omnibus flight controllers and is familiar with ONLY those boards.
+
+These files are not a product of the official inav project and are not endorsed
+by the project or affiliated with it. These files may or may not work well for you.
+They have been provided by people who made them for their own use and report that the files work for them.
+
+Here is some information about how you can make your own target, either to support
+an FC that isn't already supported, or to remap resources:
+[Building Custom Firmware](https://github.com/iNavFlight/inav/wiki/Building-custom-firmware)
+
+
+
 
 * [INAV Discord Server](https://discord.gg/peg2hhbYwN)
 * [INAV Official on Facebook](https://www.facebook.com/groups/INAVOfficial)
 * [INAV Official on Telegram](https://t.me/INAVFlight)
-
-## Features
 
 * Runs on the most popular F4, F7 and H7 flight controllers
 * On Screen Display (OSD) - both character and pixel style
@@ -26,17 +62,10 @@
 * Logic Conditions, Global Functions and Global Variables: you can program INAV with a GUI
 * And many more!
 
-For a list of features, changes and some discussion please review consult the releases [page](https://github.com/iNavFlight/inav/releases) and the documentation.
-
-## Tools
-
-### INAV Configurator
 
 Official tool for INAV can be downloaded [here](https://github.com/iNavFlight/inav-configurator/releases). It can be run on Windows, MacOS and Linux machines and standalone application.  
 
 --------------------------------------------------------
-05/08/2022
-Added target BLACKPILLSYN as the STM32F41CEU6 Blackpill board and the modified  system_stm32f4xx.h and system_stm32f4xx.c file in Target folder to accomodate the 25Mhz of the Blackpill by WeAct Studio
 
 ### INAV Blackbox Explorer
 
@@ -94,6 +123,7 @@ Before creating new issues please check to see if there is an existing one, sear
 ## Developers
 
 Please refer to the development section in the [docs/development](https://github.com/iNavFlight/inav/tree/master/docs/development) folder.
+
 
 ## INAV Releases
 https://github.com/iNavFlight/inav/releases
