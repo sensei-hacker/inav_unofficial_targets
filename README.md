@@ -46,6 +46,8 @@ an FC that isn't already supported, or to remap resources:
 * [INAV Official on Facebook](https://www.facebook.com/groups/INAVOfficial)
 * [INAV Official on Telegram](https://t.me/INAVFlight)
 
+## Features
+
 * Runs on the most popular F4, F7 and H7 flight controllers
 * On Screen Display (OSD) - both character and pixel style
 * DJI OSD integration: all elements, system messages and warnings
@@ -121,7 +123,6 @@ Before creating new issues please check to see if there is an existing one, sear
 ## Developers
 
 Please refer to the development section in the [docs/development](https://github.com/iNavFlight/inav/tree/master/docs/development) folder.
-
 
 ## INAV Releases
 https://github.com/iNavFlight/inav/releases
