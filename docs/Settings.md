@@ -3184,11 +3184,11 @@ Sets the maximum allowed distance from the waypoint course line when waypoint tr
 
 ### nav_fw_wp_turn_smoothing_dist
 
-Provides a means of smoothing waypoint turns by reaching waypoints earlier as turns become tighter. Applied as an increasing multiple of nav_fw_wp_turn_smoothing_dist [cm] starting at 1 for turns exceeding 60 degrees to a maximum of 10 for turns of 105 degrees and over, e.g. a 90 degree turn is reached when 7 x nav_fw_wp_turn_smoothing_dist from waypoint. Set to 0 to disable turn smoothing.
+Smooths turns during WP missions by switching to a loiter turn at waypoints. When set to ON the craft will reach the waypoint during the turn. When set to ON-CUT the craft will turn inside the waypoint without actually reaching it (cuts the corner).
 
 | Default | Min | Max |
 | --- | --- | --- |
-| 0 | 0 | 2000 |
+| OFF |  |  |
 
 ---
 
