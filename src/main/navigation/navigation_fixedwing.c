@@ -282,8 +282,33 @@ static void calculateVirtualPositionTarget_FW(float trackingPeriod)
     // For waypoints only use circular loiter when angular visibility is > 30 degs, otherwise head straight toward target
     #define TAN_15DEG    0.26795f
     needToCalculateCircularLoiter = isNavHoldPositionActive() &&
-                                    (distanceToActualTarget <= (navLoiterRadius / TAN_15DEG)) &&
-                                    (distanceToActualTarget > 50.0f);
+                                     (distanceToActualTarget <= (navLoiterRadius / TAN_15DEG)) &&
+                                     (distanceToActualTarget > 50.0f);
+
+    /* WP turn smoothing option - switches to loiter path around waypoint using navLoiterRadius.
+     * Loiter centered on point inside turn at required distance from waypoint and
+     * on a bearing midway between current and next waypoint course bearings.
+     * Works for turns > 30 degs and < 120 degs.
+     * 2 options, 1 = pass through WP, 2 = cut inside turn missing WP */
+    int32_t waypointTurnAngle = posControl.activeWaypoint.nextTurnAngle == -1 ? -1 : ABS(posControl.activeWaypoint.nextTurnAngle);
+    posControl.flags.wpTurnSmoothingActive = false;
+    if (waypointTurnAngle > 3000 && waypointTurnAngle < 12000 && isWaypointNavTrackingActive() && !needToCalculateCircularLoiter) {
+        // turnFactor adjusts start of loiter based on turn angle
+        float turnFactor = 0.0f;
+        if (navConfig()->fw.waypoint_turn_smoothing == WP_TURN_SMOOTHING_ON) {     // passes through WP
+            turnFactor = waypointTurnAngle / 6000.0f;
+        } else {
+            turnFactor = tan_approx(CENTIDEGREES_TO_RADIANS(waypointTurnAngle / 2.0f));    // cut inside turn missing WP
+        }
+        constrainf(turnFactor, 0.5f, 2.0f);
+        if (posControl.wpDistance < navLoiterRadius * turnFactor) {
+            int32_t loiterCenterBearing = wrap_36000(((wrap_18000(posControl.activeWaypoint.nextTurnAngle - 18000)) / 2) + posControl.activeWaypoint.yaw + 18000);
+            float distToTurnCentre = navLoiterRadius;
+            if (navConfig()->fw.waypoint_turn_smoothing == WP_TURN_SMOOTHING_CUT) {
+                distToTurnCentre = navLoiterRadius / cos_approx(CENTIDEGREES_TO_RADIANS(waypointTurnAngle / 2.0f));
+            }
+            loiterCenterPos.x = posControl.activeWaypoint.pos.x + distToTurnCentre * cos_approx(CENTIDEGREES_TO_RADIANS(loiterCenterBearing));
+            loiterCenterPos.y = posControl.activeWaypoint.pos.y + distToTurnCentre * sin_approx(CENTIDEGREES_TO_RADIANS(loiterCenterBearing));
 
             posErrorX = loiterCenterPos.x - navGetCurrentActualPositionAndVelocity()->pos.x;
             posErrorY = loiterCenterPos.y - navGetCurrentActualPositionAndVelocity()->pos.y;
