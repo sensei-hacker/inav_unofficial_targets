@@ -212,8 +212,9 @@ PG_RESET_TEMPLATE(navConfig_t, navConfig,
         .yawControlDeadband = SETTING_NAV_FW_YAW_DEADBAND_DEFAULT,
         .soaring_pitch_deadband = SETTING_NAV_FW_SOARING_PITCH_DEADBAND_DEFAULT,// pitch angle mode deadband when Saoring mode enabled
         .auto_disarm_delay = SETTING_NAV_FW_AUTO_DISARM_DELAY_DEFAULT,          // ms - time delay to disarm when auto disarm after landing enabled
-        .waypoint_tracking_accuracy = SETTING_NAV_FW_WP_TRACKING_ACCURACY_DEFAULT,  // 0 cm
-        .wp_turn_smoothing_dist = SETTING_NAV_FW_WP_TURN_SMOOTHING_DIST_DEFAULT,    // 0 cm
+        .wp_tracking_accuracy = SETTING_NAV_FW_WP_TRACKING_ACCURACY_DEFAULT,    // 0, improves course tracking accuracy during FW WP missions
+        .wp_tracking_max_angle = SETTING_NAV_FW_WP_TRACKING_MAX_ANGLE_DEFAULT,  // 60 degs    CR67
+        .wp_turn_smoothing = SETTING_NAV_FW_WP_TURN_SMOOTHING_DEFAULT,          // 0, smooths turns during FW WP mode missions
     }
 );
 
