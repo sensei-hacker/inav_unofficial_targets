@@ -388,7 +388,7 @@ static bool emergencyArmingIsEnabled(void)
     return emergencyArmingIsTriggered() && emergencyArmingCanOverrideArmingDisabled();
 }
 
-static void processPilotAndFailSafeActions(float dT)
+void processPilotAndFailSafeActions(float dT)
 {
     if (failsafeShouldApplyControlInput()) {
         // Failsafe will apply rcCommand for us
@@ -878,7 +878,7 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
     imuUpdateAttitude(currentTimeUs);
 
     processPilotAndFailSafeActions(dT);
-
+    
     updateArmingStatus();
 
     if (rxConfig()->rcFilterFrequency) {
