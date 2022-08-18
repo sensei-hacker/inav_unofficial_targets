@@ -1,18 +1,18 @@
 /*
-* This file is part of INAV Project.
+* This file is part of Cleanflight.
 *
-* INAV Project is free software: you can redistribute it and/or modify
+* Cleanflight is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
 *
-* INAV Project is distributed in the hope that it will be useful,
+* Cleanflight is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License
-* along with INAV Project.  If not, see <http://www.gnu.org/licenses/>.
+* along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdint.h>
@@ -26,8 +26,8 @@
 #include "drivers/pinio.h"
 #include "drivers/sensor.h"
 
-BUSDEV_REGISTER_SPI_TAG(busdev_mpu6000, DEVHW_MPU6000, MPU6000_SPI_BUS, MPU6000_CS_PIN, NONE, 0, DEVFLAGS_NONE, IMU_MPU6000_ALIGN);
-BUSDEV_REGISTER_SPI_TAG(busdev_bmi270, DEVHW_BMI270, BMI270_SPI_BUS, BMI270_CS_PIN, NONE, 0, DEVFLAGS_NONE, IMU_BMI270_ALIGN);
+BUSDEV_REGISTER_SPI_TAG(busdev_mpu6000, DEVHW_MPU6000, MPU6000_SPI_BUS, MPU6000_CS_PIN, MPU6000_EXTI_PIN, 0, DEVFLAGS_NONE, IMU_MPU6000_ALIGN);
+BUSDEV_REGISTER_SPI_TAG(busdev_bmi270, DEVHW_BMI270, BMI270_SPI_BUS, BMI270_CS_PIN, BMI270_EXTI_PIN, 0, DEVFLAGS_NONE, IMU_BMI270_ALIGN);
 
 timerHardware_t timerHardware[] = {
     DEF_TIM(TIM9, CH2, PA3,  TIM_USE_PPM,   0, 0),  // PPM

@@ -1,18 +1,18 @@
 /*
- * This file is part of INAV Project.
+ * This file is part of Cleanflight.
  *
- * INAV Project is free software: you can redistribute it and/or modify
+ * Cleanflight is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * INAV Project is distributed in the hope that it will be useful,
+ * Cleanflight is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with INAV Project.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -30,6 +30,9 @@
 #define USE_DUAL_GYRO
 #define USE_TARGET_IMU_HARDWARE_DESCRIPTORS
 
+#define USE_EXTI
+#define USE_MPU_DATA_READY_SIGNAL
+
 // *************** Gyro & ACC **********************
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -42,11 +45,13 @@
 #define IMU_MPU6000_ALIGN       CW270_DEG
 #define MPU6000_SPI_BUS         BUS_SPI1
 #define MPU6000_CS_PIN          PA15
+#define MPU6000_EXTI_PIN        PA8
 
 #define USE_IMU_BMI270
 #define IMU_BMI270_ALIGN        CW0_DEG_FLIP
 #define BMI270_SPI_BUS          BUS_SPI1
 #define BMI270_CS_PIN           PA15
+#define BMI270_EXTI_PIN         PA8
 
 // *************** I2C/Baro/Mag *********************
 #define USE_I2C
