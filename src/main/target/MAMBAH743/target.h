@@ -52,7 +52,6 @@
 #define BMI270_SPI_BUS BUS_SPI1
 #define BMI270_CS_PIN PA4
 
-
 // SPI4 is used on the second MPU6000 gyro, we do not use it at the moment
 // #define USE_SPI_DEVICE_4
 // #define SPI4_SCK_PIN            PE12
