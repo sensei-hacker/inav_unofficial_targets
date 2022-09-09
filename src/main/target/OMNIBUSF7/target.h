@@ -60,7 +60,6 @@
 #endif
 
 
-
 #define USE_VCP
 #define VBUS_SENSING_PIN PC4
 
