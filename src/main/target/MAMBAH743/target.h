@@ -34,8 +34,6 @@
 #define USE_DUAL_GYRO
 #define USE_TARGET_IMU_HARDWARE_DESCRIPTORS
 
-
-
 // *************** SPI1 IMU0 MPU6000 ****************
 #define USE_SPI
 #define USE_SPI_DEVICE_1
