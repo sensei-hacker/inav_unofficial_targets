@@ -39,10 +39,6 @@
 #define BEEPER                          PB2
 #define BEEPER_INVERTED
 
-// ******* GYRO and ACC ********
-#define GYRO_INT_EXTI                   PC4
-
-
 //MPU6000
 #define USE_IMU_MPU6000
 #define IMU_MPU6000_ALIGN               CW180_DEG
@@ -60,15 +56,6 @@
 #define IMU_BMI270_ALIGN                CW180_DEG
 #define BMI270_SPI_BUS                  BUS_SPI1
 #define BMI270_CS_PIN                   SPI1_NSS_PIN
-
-#ifdef MAMBAF722_2022B
-
-#define USE_IMU_ICM42605
-#define IMU_ICM42605_ALIGN      CW270_DEG
-#define ICM42605_SPI_BUS        BUS_SPI1
-#define ICM42605_CS_PIN         SPI1_NSS_PIN
-
-#endif
 
 #define USE_I2C
 
