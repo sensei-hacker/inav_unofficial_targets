@@ -79,6 +79,7 @@
 
 #define MPU6000_CS_PIN          SPI1_NSS_PIN
 #define MPU6000_SPI_BUS         BUS_SPI1
+#define GYRO_INT_EXTI           PC4
 #define IMU_MPU6000_ALIGN       CW0_DEG
 #define USE_IMU_MPU6000
 #endif
@@ -93,6 +94,7 @@
 
 #define MPU6000_CS_PIN          SPI2_NSS_PIN
 #define MPU6000_SPI_BUS         BUS_SPI2
+#define GYRO_INT_EXTI           PC9
 
 #define IMU_MPU6000_ALIGN       CW0_DEG_FLIP
 #define USE_IMU_MPU6000
