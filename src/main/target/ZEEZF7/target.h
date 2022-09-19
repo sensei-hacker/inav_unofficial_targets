@@ -98,6 +98,8 @@
 #endif
 
 
+#define USE_EXTI
+#define USE_MPU_DATA_READY_SIGNAL
 #define USE_IMU_MPU6000
 #endif
 
