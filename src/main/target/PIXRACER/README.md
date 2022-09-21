@@ -23,7 +23,6 @@
 
 ## Warnings
 
-
 * PixRacers native Flight controller (PX4 & ArduPilot) motor layout is different to INAV
 * Either Swap your ESC PWM cables to match INAV
 * Or make a custom mix
