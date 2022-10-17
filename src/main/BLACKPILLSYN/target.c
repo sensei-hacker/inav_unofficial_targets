@@ -1,4 +1,4 @@
-/*
+/*BLACKPILLSYN
 * This file is part of Cleanflight.
 *
 * Cleanflight is free software: you can redistribute it and/or modify
@@ -43,6 +43,7 @@ timerHardware_t timerHardware[] = {
 /**LED STRIP WS2811**/
 
     DEF_TIM(TIM3,  CH2, PB5,  TIM_USE_LED, 0, 0), //2811LED D(1,5,5)
+
 
 
 };
