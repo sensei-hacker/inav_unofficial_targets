@@ -182,7 +182,7 @@
 #define CURRENT_METER_ADC_CHANNEL   ADC_CHN_2
 
 
-// *************** LED2811 ************************
+// *************** LED2812 ************************
 
 #define USE_LED_STRIP
 #define WS2811_PIN                      PB5
