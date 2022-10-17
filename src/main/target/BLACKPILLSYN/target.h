@@ -17,7 +17,7 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "BLPLSY"
+#define TARGET_BOARD_IDENTIFIER "BLPLSYDU"
 
 #define USBD_PRODUCT_STRING  "BLACKPILLSYN"
 
@@ -182,10 +182,11 @@
 #define CURRENT_METER_ADC_CHANNEL   ADC_CHN_2
 
 
-// *************** LED2812 ************************
+// *************** LED2811 ************************
 
 #define USE_LED_STRIP
 #define WS2811_PIN                      PB5
+
 
 // ***************  OTHERS *************************
 #define DEFAULT_FEATURES        (FEATURE_TX_PROF_SEL | FEATURE_OSD | FEATURE_CURRENT_METER | FEATURE_VBAT | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL )
