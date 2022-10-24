@@ -20,7 +20,7 @@
 #define USE_TARGET_CONFIG
 
 #define TARGET_BOARD_IDENTIFIER         "AOF4"
-#define USBD_PRODUCT_STRING             "AocodaRCF4"
+#define USBD_PRODUCT_STRING             "AocodaRCF405"
 
 // ******** Board LEDs  **********************
 #define LED0                            PC13
@@ -149,7 +149,7 @@
 #define WS2811_PIN                      PB1
 
 // ******* FEATURES ********
-#define DEFAULT_RX_TYPE                 RX_TYPE_SERIAL
+#define DEFAULT_RX_FEATURE              FEATURE_RX_SERIAL
 #define SERIALRX_UART                   SERIAL_PORT_USART2
 #define SERIALRX_PROVIDER               SERIALRX_SBUS
 
