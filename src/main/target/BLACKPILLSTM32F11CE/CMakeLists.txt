@@ -1,0 +1,1 @@
+target_stm32f411xe(BLACKPILLSTM32F11CE)
