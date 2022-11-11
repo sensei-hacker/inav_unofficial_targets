@@ -154,10 +154,6 @@ void servosInit(void)
         servoOutputEnabled = true;
         mixerUsesServos = true;
     }
-    else {
-        servoOutputEnabled = false;
-        mixerUsesServos = false;
-    }
 
     for (uint8_t i = 0; i < MAX_SUPPORTED_SERVOS; i++) {
         servoComputeScalingFactors(i);
