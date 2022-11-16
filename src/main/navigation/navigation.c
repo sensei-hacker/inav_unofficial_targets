@@ -4453,13 +4453,6 @@ bool navigationIsExecutingAnEmergencyLanding(void)
     return navGetCurrentStateFlags() & NAV_CTL_EMERG;
 }
 
-
-bool navigationInAnyMode(void)
-{
-    navigationFSMStateFlags_t stateFlags = navGetCurrentStateFlags();
-    return !(stateFlags ==0);
-}
-
 bool navigationInAutomaticThrottleMode(void)
 {
     navigationFSMStateFlags_t stateFlags = navGetCurrentStateFlags();
