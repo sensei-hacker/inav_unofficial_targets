@@ -139,6 +139,10 @@ bool ifMotorstopFeatureEnabled(void){
     return currentMixerConfig.motorstopOnLow;
 }
 
+bool ifMotorstopFeatureEnabled(void){
+    return mixerConfig()->motorstopFeature;
+}
+
 uint8_t getMotorCount(void) {
     return motorCount;
 }
