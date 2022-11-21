@@ -51,6 +51,7 @@
 
 #include "flight/pid.h"
 #include "flight/failsafe.h"
+#include "flight/mixer.h"
 
 #include "io/gps.h"
 #include "io/beeper.h"
