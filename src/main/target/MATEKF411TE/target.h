@@ -17,6 +17,8 @@
 
 #pragma once
 
+#undef USE_SAFE_HOME
+
 #define TARGET_BOARD_IDENTIFIER "M41T"
 #define USBD_PRODUCT_STRING  "MatekF411TE"
 
