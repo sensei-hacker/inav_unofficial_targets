@@ -34,7 +34,7 @@ timerHardware_t timerHardware[] = {
     DEF_TIM(TIM2, CH3, PB10,  TIM_USE_OUTPUT_AUTO, 0, 0),  // S7 DMA1_S1_CH3
     DEF_TIM(TIM2, CH4, PB11,  TIM_USE_OUTPUT_AUTO, 0, 1),  // S8 DMA1_S6_CH3
 
-    DEF_TIM(TIM1, CH1, PA8,  TIM_USE_LED,                         0, 0),  // WS2812B
+    DEF_TIM(TIM1, CH2N, PB0,  TIM_USE_LED,                         0, 0),  // WS2812B DMA2_S6_CH0
 };
 
 const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
