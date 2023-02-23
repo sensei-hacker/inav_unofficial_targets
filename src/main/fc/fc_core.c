@@ -870,7 +870,7 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
 
     if (!ARMING_FLAG(ARMED)) {
         armTime = 0;
-        
+
         processDelayedSave();
     }
 
@@ -898,7 +898,6 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
     if (isRXDataNew) {
         updateWaypointsAndNavigationMode();
     }
-
     isRXDataNew = false;
 
     updatePositionEstimator();
@@ -942,10 +941,9 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
         writeMotors();
     }
 #endif
-
     // Check if landed, FW and MR
     if (STATE(ALTITUDE_CONTROL)) {
-        updateLandingStatus();
+        updateLandingStatus(US2MS(currentTimeUs));
     }
 
 #ifdef USE_BLACKBOX
