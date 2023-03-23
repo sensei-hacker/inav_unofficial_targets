@@ -32,6 +32,9 @@
     #if defined(USE_IMU_MPU6000)
         BUSDEV_REGISTER_SPI(busdev_mpu6000,     DEVHW_MPU6000,      MPU6000_SPI_BUS,    MPU6000_CS_PIN,     NONE,  DEVFLAGS_NONE,  IMU_MPU6000_ALIGN);
     #endif
+	#if defined(USE_IMU_MPU6050)
+        BUSDEV_REGISTER_I2C(busdev_mpu6050,     DEVHW_MPU6050,      MPU6050_I2C_BUS,    MPU_ADDRESS,        NONE,  DEVFLAGS_NONE,  IMU_MPU6050_ALIGN);
+    #endif
 
     #if defined(USE_IMU_MPU6500)
         #if defined(MPU6500_SPI_BUS)
