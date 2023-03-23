@@ -49,23 +49,21 @@
 #define MPU6500_CS_PIN          PA4
 #define MPU6500_SPI_BUS         BUS_SPI1
 
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
+#define M25P16_CS_PIN           PA4
+#define M25P16_SPI_BUS          BUS_SPI1
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
+
 // *************** SPI2 OSD OR FLASH*****************************
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
 #define SPI2_MISO_PIN           PB14
 #define SPI2_MOSI_PIN           PB15
 
-#ifdef BLACKPILL_F411_BLACKBOX
-#define USE_FLASHFS
-#define USE_FLASH_M25P16
-#define M25P16_CS_PIN           PB12
-#define M25P16_SPI_BUS          BUS_SPI2
-#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-#else
 #define USE_MAX7456
 #define MAX7456_SPI_BUS         BUS_SPI2
 #define MAX7456_CS_PIN          PB12
-#endif
 
 // *************** UART *****************************
 #define USE_VCP
@@ -127,6 +125,10 @@
 #define USE_RANGEFINDER
 #define USE_RANGEFINDER_MSP
 #define RANGEFINDER_I2C_BUS     BUS_I2C1
+
+#define USE_IMU_MPU6050
+#define IMU_MPU6050_ALIGN       CW0_DEG
+#define MPU6050_I2C_BUS         BUS_I2C1
 
 // *************** ADC *****************************
 #define USE_ADC
