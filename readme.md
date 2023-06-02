@@ -38,6 +38,8 @@ On the other hand, all targets are welcome here.
 
 Please add in your target folder a readme.txt file saying what your target is for and how you've tested it.
 
+# INAV Community
+
 * Runs on the most popular F4, F7 and H7 flight controllers
 * On Screen Display (OSD) - both character and pixel style
 * DJI OSD integration: all elements, system messages and warnings
