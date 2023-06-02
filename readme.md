@@ -67,10 +67,8 @@ These files are not a product of the official inav project and are not endorsed
 by the project or affiliated with it. These files may or may not work well for you.
 They have been provided by people who made them for their own use and report that the files work for them.
 
-
 Official tool for INAV can be downloaded [here](https://github.com/iNavFlight/inav-configurator/releases). It can be run on Windows, MacOS and Linux machines and standalone application.
 
---------------------------------------------------------
 
 ### INAV Blackbox Explorer
 
