@@ -32,7 +32,6 @@ BUSDEV_REGISTER_SPI_TAG(busdev_bmi270_2,      DEVHW_BMI270,       BMI270_SPI_BUS
 
 
 timerHardware_t timerHardware[] = {
-<<<<<<< HEAD
     DEF_TIM(TIM3, CH3, PB0, TIM_USE_OUTPUT_AUTO, 0, 0),   // S1
     DEF_TIM(TIM3, CH4, PB1, TIM_USE_OUTPUT_AUTO, 0, 1),   // S2
     DEF_TIM(TIM5, CH1, PA0, TIM_USE_OUTPUT_AUTO, 0, 2),   // S3  
