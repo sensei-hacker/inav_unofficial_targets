@@ -139,10 +139,6 @@ bool ifMotorstopFeatureEnabled(void){
     return currentMixerConfig.motorstopOnLow;
 }
 
-bool ifMotorstopFeatureEnabled(void){
-    return mixerConfig()->motorstopFeature;
-}
-
 uint8_t getMotorCount(void) {
     return motorCount;
 }
@@ -460,15 +456,10 @@ void writeAllMotors(int16_t mc)
     writeMotors();
 }
 
-
-void stopMotorsNoDelay(void)
-{
-    writeAllMotors(feature(FEATURE_REVERSIBLE_MOTORS) ? reversibleMotorsConfig()->neutral : motorConfig()->mincommand);
-}
 void stopMotors(void)
 {
-    stopMotorsNoDelay();
-    
+    writeAllMotors(feature(FEATURE_REVERSIBLE_MOTORS) ? reversibleMotorsConfig()->neutral : motorConfig()->mincommand);
+
     delay(50); // give the timers and ESCs a chance to react.
 }
 
