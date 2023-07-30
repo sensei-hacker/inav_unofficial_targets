@@ -105,6 +105,7 @@ typedef struct navigationFlags_s {
     // Failsafe actions
     bool forcedRTHActivated;
     bool forcedEmergLandingActivated;
+    bool forcedAltHoldActivated;
 
     /* Landing detector */
     bool resetLandingDetector;
