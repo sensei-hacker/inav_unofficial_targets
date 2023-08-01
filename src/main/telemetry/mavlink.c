@@ -605,6 +605,21 @@ void mavlinkSendPosition(timeUs_t currentTimeUs)
         ((uint64_t) millis()) * 1000);
 
     mavlinkSendMessage();
+
+
+	if (posControl.rthState.homeFlags & NAV_HOME_VALID_ALL) {
+        mavlink_msg_home_position_pack(mavSystemId, mavComponentId, &mavSendMsg,
+            GPS_home.lat,
+            GPS_home.lon,
+            GPS_home.alt * 10,
+            0,0,0, // xyz unsupported
+			0, // ground slope and heading unsupported
+            0,0,0, // approach_x,y,z unsupported
+            ((uint64_t) millis()) * 1000);
+
+        mavlinkSendMessage();
+    }
+
 }
 #endif
 
