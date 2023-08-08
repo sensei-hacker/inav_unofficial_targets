@@ -235,6 +235,8 @@ void pwmBuildTimerOutputList(timMotorServoHardware_t * timOutputs, bool isMixerU
     uint8_t motorCount = getMotorCount();
     uint8_t motorIdx = 0;
 
+	int timer2type[HARDWARE_TIMER_DEFINITION_COUNT] = { MAP_TO_NONE, };
+
     for (int idx = 0; idx < timerHardwareCount; idx++) {
 
         timerHardware_t *timHw = &timerHardware[idx];
@@ -250,6 +252,17 @@ void pwmBuildTimerOutputList(timMotorServoHardware_t * timOutputs, bool isMixerU
         }
 
         // Determine if timer belongs to motor/servo
+
+		// If another channel of this timer is already assigned as a servo or motor,
+		// this channel must match.
+		uint8_t timerIndex = lookupTimerIndex(timHw->tim);
+
+		if ( timer2type[timerIndex] == MAP_TO_MOTOR_OUTPUT) {
+			timHw->usageFlags = timHw->usageFlags & (TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR);
+		} else if (timer2type[timerIndex] == MAP_TO_SERVO_OUTPUT) {
+			timHw->usageFlags = timHw->usageFlags & (TIM_USE_MC_SERVO | TIM_USE_FW_SERVO);
+		}
+
         if (mixerConfig()->platformType == PLATFORM_MULTIROTOR || mixerConfig()->platformType == PLATFORM_TRICOPTER) {
             // Multicopter
 
@@ -275,6 +288,8 @@ void pwmBuildTimerOutputList(timMotorServoHardware_t * timOutputs, bool isMixerU
                 type = MAP_TO_MOTOR_OUTPUT;
             }
         }
+
+		timer2type[timerIndex] =  type;
 
         switch(type) {
             case MAP_TO_MOTOR_OUTPUT:

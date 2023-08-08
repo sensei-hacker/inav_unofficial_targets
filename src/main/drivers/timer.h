@@ -229,3 +229,11 @@ void timerPWMStopDMA(TCH_t * tch);
 bool timerPWMDMAInProgress(TCH_t * tch);
 
 volatile timCCR_t *timerCCR(TCH_t * tch);
+
+
+#if defined(AT32F43x)
+uint8_t lookupTimerIndex(const tmr_type *tim);
+#else
+uint8_t lookupTimerIndex(const TIM_TypeDef *tim);
+#endif
+
