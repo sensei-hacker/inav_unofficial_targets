@@ -227,6 +227,29 @@ static void timerHardwareOverride(timerHardware_t * timer) {
     }
 }
 
+
+// If another channel of this timer is already assigned as a servo or motor,
+// this channel must match.
+
+int timer_motor_ok(uint8_t pwmIndex, int *timer2type) {
+    if (timer2type[pwmIndex] == MAP_TO_SERVO_OUTPUT) {
+        return (false);
+    } else {
+        timer2type[pwmIndex] = MAP_TO_MOTOR_OUTPUT;
+        return(true);
+    }
+}
+
+int timer_servo_ok(uint8_t pwmIndex, int *timer2type) {
+	if (timer2type[pwmIndex] == MAP_TO_MOTOR_OUTPUT) {
+		return (false);
+	} else {
+		timer2type[pwmIndex] = MAP_TO_SERVO_OUTPUT;
+		return(true);
+	}
+}
+
+
 void pwmBuildTimerOutputList(timMotorServoHardware_t * timOutputs, bool isMixerUsingServos)
 {
     timOutputs->maxTimMotorCount = 0;
@@ -235,7 +258,7 @@ void pwmBuildTimerOutputList(timMotorServoHardware_t * timOutputs, bool isMixerU
     uint8_t motorCount = getMotorCount();
     uint8_t motorIdx = 0;
 
-	int timer2type[HARDWARE_TIMER_DEFINITION_COUNT] = { MAP_TO_NONE, };
+    int timer2type[HARDWARE_TIMER_DEFINITION_COUNT] = { MAP_TO_NONE };
 
     for (int idx = 0; idx < timerHardwareCount; idx++) {
 
@@ -253,43 +276,44 @@ void pwmBuildTimerOutputList(timMotorServoHardware_t * timOutputs, bool isMixerU
 
         // Determine if timer belongs to motor/servo
 
-		// If another channel of this timer is already assigned as a servo or motor,
-		// this channel must match.
 		uint8_t timerIndex = lookupTimerIndex(timHw->tim);
 
+		/*
 		if ( timer2type[timerIndex] == MAP_TO_MOTOR_OUTPUT) {
+			// Doesn't quite work
 			timHw->usageFlags = timHw->usageFlags & (TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR);
 		} else if (timer2type[timerIndex] == MAP_TO_SERVO_OUTPUT) {
 			timHw->usageFlags = timHw->usageFlags & (TIM_USE_MC_SERVO | TIM_USE_FW_SERVO);
 		}
+		*/
 
         if (mixerConfig()->platformType == PLATFORM_MULTIROTOR || mixerConfig()->platformType == PLATFORM_TRICOPTER) {
             // Multicopter
 
             // Make sure first motorCount outputs get assigned to motor
-            if ((timHw->usageFlags & TIM_USE_MC_MOTOR) && (motorIdx < motorCount)) {
+            if ((timHw->usageFlags & TIM_USE_MC_MOTOR) && (motorIdx < motorCount) && timer_motor_ok(timerIndex, timer2type)) {
                 timHw->usageFlags = timHw->usageFlags & ~TIM_USE_MC_SERVO;
                 motorIdx += 1;
             }
 
             // We enable mapping to servos if mixer is actually using them
-            if (isMixerUsingServos && timHw->usageFlags & TIM_USE_MC_SERVO) {
+            if (isMixerUsingServos && (timHw->usageFlags & TIM_USE_MC_SERVO) && timer_servo_ok(timerIndex, timer2type)) {
                 type = MAP_TO_SERVO_OUTPUT;
             }
-            else if (timHw->usageFlags & TIM_USE_MC_MOTOR) {
+            else if ((timHw->usageFlags & TIM_USE_MC_MOTOR) && timer_motor_ok(timerIndex, timer2type)) {
                 type = MAP_TO_MOTOR_OUTPUT;
             }
         } else {
             // Fixed wing or HELI (one/two motors and a lot of servos
-            if (timHw->usageFlags & TIM_USE_FW_SERVO) {
+            if ((timHw->usageFlags & TIM_USE_FW_SERVO) && timer_servo_ok(timerIndex, timer2type)) {
                 type = MAP_TO_SERVO_OUTPUT;
             }
-            else if (timHw->usageFlags & TIM_USE_FW_MOTOR) {
+            else if ((timHw->usageFlags & TIM_USE_FW_MOTOR) && timer_motor_ok(timerIndex, timer2type)) {
                 type = MAP_TO_MOTOR_OUTPUT;
             }
         }
 
-		timer2type[timerIndex] =  type;
+		// timer2type[timerIndex] =  type;
 
         switch(type) {
             case MAP_TO_MOTOR_OUTPUT:
