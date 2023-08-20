@@ -30,6 +30,8 @@ Here is some information about how you can make your own target, either to suppo
 an FC that isn't already supported, or to remap resources:
 [Building Custom Firmware](https://github.com/iNavFlight/inav/wiki/Building-custom-firmware)
 
+[Mosca's script](https://github.com/iNavFlight/inav/tree/mosca-target-converter/src/utils) can help make a new INAV yarget from an existing Betaflight target.
+
 Getting a new target added to the *offical* inav distribution has certain
 [requirements](https://github.com/iNavFlight/inav/blob/master/docs/policies/NEW_HARDWARE_POLICY.md).
 On the other hand, all targets are welcome here.
