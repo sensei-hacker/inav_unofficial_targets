@@ -225,21 +225,6 @@ static void timerHardwareOverride(timerHardware_t * timer) {
             }
             break;
     }
-
-    switch (timerOverrides(timer2id(timer->tim))->outputMode) {
-        case OUTPUT_MODE_MOTORS:
-            if (timer->usageFlags & (TIM_USE_MC_SERVO | TIM_USE_FW_SERVO)) {
-                timer->usageFlags &= ~(TIM_USE_MC_SERVO | TIM_USE_FW_SERVO);
-                timer->usageFlags |= TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR;
-            }
-            break;
-        case OUTPUT_MODE_SERVOS:
-            if (timer->usageFlags & (TIM_USE_MC_MOTOR|TIM_USE_FW_MOTOR)) {
-                timer->usageFlags &= ~(TIM_USE_MC_MOTOR | TIM_USE_FW_MOTOR);
-                timer->usageFlags |= TIM_USE_MC_SERVO | TIM_USE_FW_SERVO;
-            }
-            break;
-    }
 }
 
 bool pwmHasMotorOnTimer(timMotorServoHardware_t * timOutputs, HAL_Timer_t *tim)
