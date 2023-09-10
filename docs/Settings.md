@@ -5672,9 +5672,19 @@ See tpa_rate.
 
 ---
 
+### tpa_on_yaw
+
+Throttle PID attenuation also reduces influence on YAW for multi-rotor, Should be set to ON for tilting rotors.
+
+| Default | Min | Max |
+| --- | --- | --- |
+| OFF | OFF | ON |
+
+---
+
 ### tpa_rate
 
-Throttle PID attenuation reduces influence of P on ROLL and PITCH as throttle increases. For every 1% throttle after the TPA breakpoint, P is reduced by the TPA rate.
+Throttle PID attenuation reduces influence of PDFF on ROLL and PITCH of multi-rotor, PIDFF on ROLL,PITCH,YAW OF fixed_wing as throttle increases. For every 1% throttle after the TPA breakpoint, P is reduced by the TPA rate.
 
 | Default | Min | Max |
 | --- | --- | --- |
