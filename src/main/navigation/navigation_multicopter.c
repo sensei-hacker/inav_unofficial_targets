@@ -273,7 +273,7 @@ static void applyMulticopterAltitudeController(timeUs_t currentTimeUs)
     }
 
     // Update throttle controller
-    rcCommand[THROTTLE] = setDesiredThrottle(posControl.rcAdjustment[THROTTLE], false);
+    rcCommand[THROTTLE] = posControl.rcAdjustment[THROTTLE];
 
     // Save processed throttle for future use
     rcCommandAdjustedThrottle = rcCommand[THROTTLE];
@@ -947,7 +947,7 @@ static void applyMulticopterEmergencyLandingController(timeUs_t currentTimeUs)
     }
 
     // Update throttle
-    rcCommand[THROTTLE] = setDesiredThrottle(posControl.rcAdjustment[THROTTLE], false);
+    rcCommand[THROTTLE] = posControl.rcAdjustment[THROTTLE];
 
     // Hold position if possible
     if ((posControl.flags.estPosStatus >= EST_USABLE)) {
