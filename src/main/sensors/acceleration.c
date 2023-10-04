@@ -37,7 +37,6 @@
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/accgyro/accgyro_mpu.h"
 #include "drivers/accgyro/accgyro_mpu6000.h"
-#include "drivers/accgyro/accgyro_mpu6050.h"
 #include "drivers/accgyro/accgyro_mpu6500.h"
 #include "drivers/accgyro/accgyro_mpu9250.h"
 
@@ -131,18 +130,7 @@ static bool accDetect(accDev_t *dev, accelerationSensor_e accHardwareToUse)
     switch (accHardwareToUse) {
     case ACC_AUTODETECT:
         FALLTHROUGH;
-#ifdef USE_IMU_MPU6050
-    case ACC_MPU6050: // MPU6050
-        if (mpu6050AccDetect(dev)) {
-            accHardware = ACC_MPU6050;
-            break;
-        }
-        /* If we are asked for a specific sensor - break out, otherwise - fall through and continue */
-        if (accHardwareToUse != ACC_AUTODETECT) {
-            break;
-        }
-        FALLTHROUGH;
-#endif
+
 #ifdef USE_IMU_MPU6000
     case ACC_MPU6000:
         if (mpu6000AccDetect(dev)) {
