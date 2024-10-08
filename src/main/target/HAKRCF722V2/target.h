@@ -87,7 +87,7 @@
 #define USE_FLASH_M25P16
 #define M25P16_CS_PIN           SPI3_NSS_PIN
 #define M25P16_SPI_BUS          BUS_SPI3
-
+#define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 // *** UART ***
 #define USE_VCP
 
@@ -137,11 +137,7 @@
 
 #define USE_MAG
 #define MAG_I2C_BUS             BUS_I2C1
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
+#define USE_MAG_ALL
 
 #define PITOT_I2C_BUS           BUS_I2C1
 

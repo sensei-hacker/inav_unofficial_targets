@@ -341,6 +341,8 @@ main_sources(COMMON_SRC
     flight/secondary_dynamic_gyro_notch.h
     flight/dynamic_lpf.c
     flight/dynamic_lpf.h
+    flight/ez_tune.c
+    flight/ez_tune.h
 
     io/beeper.c
     io/beeper.h
@@ -368,6 +370,8 @@ main_sources(COMMON_SRC
     io/rcdevice.h
     io/rcdevice_cam.c
     io/rcdevice_cam.h
+
+    io/osd/custom_elements.c
 
     msp/msp_serial.c
     msp/msp_serial.h
@@ -523,6 +527,8 @@ main_sources(COMMON_SRC
     io/osd_grid.h
     io/osd_hud.c
     io/osd_hud.h
+    io/osd_joystick.c
+    io/osd_joystick.h
     io/smartport_master.c
     io/smartport_master.h
     io/vtx.c

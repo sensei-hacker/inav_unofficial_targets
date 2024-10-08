@@ -2,58 +2,57 @@ These are unofficial targets for [INAV](https://github.com/iNavFlight/inav).
 Some of the targets provide support for flight controller boards that do not have official INAV support.
 Others add features to boards that are supported, such as adding PINIO or extra servo outputs.
 
-Targets can be found in [src/main/target/](src/main/target/)
+# F411 PSA
 
-Targets available here include:
+> INAV no longer accepts targets based on STM32 F411 MCU.
 
-GEPRCF722
-GRAVITYF7
-IFLIGHTF7_SXEMINI
-MATEKF405SE_PINIO
-MATEKF405SE_PINIO2
-OMNIBUSF4_PINIO:
-OMNIBUSF4_PINIOPRO
-OMNIBUSF4_PINIOV3
-OMNIBUSF4_PINIOV3_S5_S6_2SS
-OMNIBUSF4_PINIOV3_S5S6_SS
-OMNIBUSF4_PINIOV3_S6_SS
-SKYSTARSF405hd
-SKYSTARSF722HDPRO
-and more
+> INAV 7 is the last INAV official release available for F411 based flight controllers. The next milestone, INAV 8 will not be available for F411 boards.
 
-New additions are very much welcomed. If you've made your own target, please
-send a pull request or send me a zip of your files and I'll add it here.
-Improvements are also very much welcomed. Any additions or improvements you
-make, please send a PR or let me know.
+![INAV](http://static.rcgroups.net/forums/attachments/6/1/0/3/7/6/a9088858-102-inav.png)
 
-Here is some information about how you can make your own target, either to support
-an FC that isn't already supported, or to remap resources:
-[Building Custom Firmware](https://github.com/iNavFlight/inav/wiki/Building-custom-firmware)
+# PosHold, Navigation and RTH without compass PSA
 
-[Mosca's script](https://github.com/iNavFlight/inav/tree/mosca-target-converter/src/utils) can help make a new INAV target from an existing Betaflight target.
+Attention all drone pilots and enthusiasts,
 
-Getting a new target added to the *offical* inav distribution has certain
-[requirements](https://github.com/iNavFlight/inav/blob/master/docs/policies/NEW_HARDWARE_POLICY.md).
-On the other hand, all targets are welcome here.
+Are you ready to take your flights to new heights with INAV 7.1? We've got some important information to share with you.
 
-Please add in your target folder a readme.txt file saying what your target is for and how you've tested it.
+INAV 7.1 brings an exciting update to navigation capabilities. Now, you can soar through the skies, navigate waypoints, and even return to home without relying on a compass. Yes, you heard that right! But before you launch into the air, there's something crucial to consider.
+
+While INAV 7.1 may not require a compass for basic navigation functions, we strongly advise you to install one for optimal flight performance. Here's why:
+
+🛰️ Better Flight Precision: A compass provides essential data for accurate navigation, ensuring smoother and more precise flight paths.
+
+🌐 Enhanced Reliability: With a compass onboard, your drone can maintain stability even in challenging environments, low speeds and strong wind.
+
+🚀 Minimize Risks: Although INAV 7.1 can get you where you need to go without a compass, flying without one may result in a bumpier ride and increased risk of drift or inaccurate positioning.
+
+Remember, safety and efficiency are paramount when operating drones. By installing a compass, you're not just enhancing your flight experience, but also prioritizing safety for yourself and those around you.
+
+So, before you take off on your next adventure, make sure to equip your drone with a compass. It's the smart choice for smoother flights and better navigation.
+
+Fly safe, fly smart with INAV 7.1 and a compass by your side!
 
 # INAV Community
 
+* [INAV Discord Server](https://discord.gg/peg2hhbYwN)
+* [INAV Official on Facebook](https://www.facebook.com/groups/INAVOfficial)
+
+## Features
+
 * Runs on the most popular F4, F7 and H7 flight controllers
-* On Screen Display (OSD) - both character and pixel style
-* DJI OSD integration: all elements, system messages and warnings
+* MSP Displayport for all the HD Digital FPV systems: DJI, Walksnail and HDZero
 * Outstanding performance out of the box
 * Position Hold, Altitude Hold, Return To Home and Waypoint Missions
 * Excellent support for fixed wing UAVs: airplanes, flying wings
+* Blackbox flight recorder logging
+* Advanced gyro filtering
 * Fully configurable mixer that allows to run any hardware you want: multirotor, fixed wing, rovers, boats and other experimental devices
 * Multiple sensor support: GPS, Pitot tube, sonar, lidar, temperature, ESC with BlHeli_32 telemetry
+* Logic Conditions, Global Functions and Global Variables: you can program INAV with a GUI
 * SmartAudio and IRC Tramp VTX support
-* Blackbox flight recorder logging
 * Telemetry: SmartPort, FPort, MAVlink, LTM, CRSF
 * Multi-color RGB LED Strip support
-* Advanced gyro filtering
-* Logic Conditions, Global Functions and Global Variables: you can program INAV with a GUI
+* On Screen Display (OSD) - both character and pixel style
 * And many more!
 
 
@@ -81,10 +80,6 @@ Command line tools (`blackbox_decode`, `blackbox_render`) for Blackbox log conve
 ### Telemetry screen for EdgeTX and OpenTX
 
 Users of EdgeTX and OpenTX radios (Taranis, Horus, Jumper, Radiomaster, Nirvana) can use INAV OpenTX Telemetry Widget screen. Software and installation instruction are available here: [https://github.com/iNavFlight/OpenTX-Telemetry-Widget](https://github.com/iNavFlight/OpenTX-Telemetry-Widget)
-
-### INAV magnetometer alignment helper
-
-[INAV Magnetometer Alignment helper](https://kernel-machine.github.io/INavMagAlignHelper/) allows to align INAV magnetometer despite position and orientation. This simplifies the process of INAV setup on multirotors with tilted GPS modules.
 
 ### OSD layout Copy, Move, or Replace helper tool
 

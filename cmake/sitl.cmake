@@ -34,7 +34,7 @@ set(SITL_LINK_OPTIONS
     -Wl,-L${STM32_LINKER_DIR}
 )
 
-if(${WIN32} OR ${CYGWIN})
+if(${CYGWIN})
     set(SITL_LINK_OPTIONS ${SITL_LINK_OPTIONS} "-static-libgcc")
 endif()
 
@@ -52,6 +52,11 @@ set(SITL_COMPILE_OPTIONS
     -Wno-format #Fixme: Compile for 32bit, but settings.rb has to be adjusted
     -funsigned-char
 )
+
+if(DEBUG)
+    message(STATUS "Debug mode enabled. Adding -g to SITL_COMPILE_OPTIONS.")
+    list(APPEND SITL_COMPILE_OPTIONS -g)
+endif()
 
 if(NOT MACOSX)
     set(SITL_COMPILE_OPTIONS ${SITL_COMPILE_OPTIONS}
@@ -126,7 +131,7 @@ function (target_sitl name)
         target_link_options(${exe_target} PRIVATE -T${script_path})
     endif()
 
-    if(${WIN32} OR ${CYGWIN})
+    if(${CYGWIN})
         set(exe_filename ${CMAKE_BINARY_DIR}/${binary_name}.exe)
     else()
         set(exe_filename ${CMAKE_BINARY_DIR}/${binary_name})

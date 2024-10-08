@@ -4,7 +4,9 @@ ARG USER_ID
 ARG GROUP_ID
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y git cmake make ruby gcc python3 python3-pip gcc-arm-none-eabi
+RUN apt-get update && apt-get install -y git cmake make ruby gcc python3 python3-pip gcc-arm-none-eabi ninja-build
+
+RUN if [ "$GDB" = "yes" ]; then apt-get install -y gdb; fi
 
 RUN pip install pyyaml
 
@@ -13,6 +15,7 @@ RUN addgroup --gid $GROUP_ID inav; exit 0;
 RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID inav; exit 0;
 
 USER inav
+
 RUN git config --global --add safe.directory /src
 
 VOLUME /src

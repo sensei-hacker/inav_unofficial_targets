@@ -140,8 +140,8 @@
 
 #define USE_POWER_LIMITS
 
-#define NAV_FIXED_WING_LANDING
 #define USE_SAFE_HOME
+#define USE_FW_AUTOLAND
 #define USE_AUTOTUNE_FIXED_WING
 #define USE_LOG
 #define USE_STATS
@@ -188,6 +188,9 @@
 #define USE_SERIALRX_SUMD
 #define USE_TELEMETRY_HOTT
 #define USE_HOTT_TEXTMODE
-#else
+#define USE_24CHANNELS
+#define MAX_MIXER_PROFILE_COUNT 2
+#elif !defined(STM32F7)
 #define MAX_MIXER_PROFILE_COUNT 1
 #endif
+#define USE_EZ_TUNE

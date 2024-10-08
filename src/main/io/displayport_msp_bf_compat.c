@@ -96,10 +96,31 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
 
     case SYM_AH_DECORATION_DOWN:
         return BF_SYM_AH_DECORATION_DOWN;
-
-    case SYM_DIRECTION:
-        return BF_SYM_DIRECTION;
 */
+    case SYM_DIRECTION:
+        return BF_SYM_ARROW_NORTH;
+    
+    case SYM_DIRECTION + 1: // NE pointing arrow
+        return BF_SYM_ARROW_7;
+
+    case SYM_DIRECTION + 2: // E pointing arrow
+        return BF_SYM_ARROW_EAST;
+
+    case SYM_DIRECTION + 3: // SE pointing arrow
+        return BF_SYM_ARROW_3;
+
+    case SYM_DIRECTION + 4: // S pointing arrow
+        return BF_SYM_ARROW_SOUTH;
+
+    case SYM_DIRECTION + 5: // SW pointing arrow
+        return BF_SYM_ARROW_15;
+
+    case SYM_DIRECTION + 6: // W pointing arrow
+        return BF_SYM_ARROW_WEST;
+
+    case SYM_DIRECTION + 7: // NW pointing arrow
+        return BF_SYM_ARROW_11;
+
     case SYM_VOLT:
         return BF_SYM_VOLT;
 
@@ -187,13 +208,9 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
     case SYM_ALT_M:
         return BF_SYM_M;
 
-/*
-    case SYM_TRIP_DIST:
-        return BF_SYM_TRIP_DIST;
-
     case SYM_TOTAL:
-        return BF_SYM_TOTAL;
-
+        return BF_SYM_TOTAL_DISTANCE;
+/*
     case SYM_ALT_KM:
         return BF_SYM_ALT_KM;
 
@@ -226,20 +243,19 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
 /*
     case SYM_NM:
         return BF_SYM_NM;
-
+*/
     case SYM_WIND_HORIZONTAL:
-        return BF_SYM_WIND_HORIZONTAL;
+        return 'W';     // W for wind
 
+/*
     case SYM_WIND_VERTICAL:
         return BF_SYM_WIND_VERTICAL;
 
     case SYM_3D_KT:
         return BF_SYM_3D_KT;
-
-
-    case SYM_AIR:
-        return BF_SYM_AIR;
 */
+    case SYM_AIR:
+        return 'A';     // A for airspeed
 
     case SYM_3D_KMH:
         return BF_SYM_KPH;
@@ -277,13 +293,12 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
     case SYM_THR:
         return BF_SYM_THR;
 
-/*
     case SYM_TEMP_F:
-        return BF_SYM_TEMP_F;
+        return BF_SYM_F;
 
     case SYM_TEMP_C:
-        return BF_SYM_TEMP_C;
-*/
+        return BF_SYM_C;
+
     case SYM_BLANK:
         return BF_SYM_BLANK;
 /*
@@ -334,10 +349,12 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
 
     case SYM_PITCH_DOWN:
         return BF_SYM_PITCH_DOWN;
+ */
 
     case SYM_GFORCE:
-        return BF_SYM_GFORCE;
+        return 'G';
 
+/*
     case SYM_GFORCE_X:
         return BF_SYM_GFORCE_X;
 
@@ -560,6 +577,48 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
     case (SYM_AH_V_START+4):
     case (SYM_AH_V_START+5):
         return BF_SYM_AH_BAR9_4;
+
+    // BF for ESP_RADAR Symbols
+    case SYM_HUD_CARDINAL:
+        return BF_SYM_ARROW_SOUTH;
+    case SYM_HUD_CARDINAL + 1:
+        return BF_SYM_ARROW_16;
+    case SYM_HUD_CARDINAL + 2:
+        return BF_SYM_ARROW_15;
+    case SYM_HUD_CARDINAL + 3:
+        return BF_SYM_ARROW_WEST;
+    case SYM_HUD_CARDINAL + 4:
+        return BF_SYM_ARROW_12;
+    case SYM_HUD_CARDINAL + 5:
+        return BF_SYM_ARROW_11;
+    case SYM_HUD_CARDINAL + 6:
+        return BF_SYM_ARROW_NORTH;
+    case SYM_HUD_CARDINAL + 7:
+        return BF_SYM_ARROW_7;
+    case SYM_HUD_CARDINAL + 8:
+        return BF_SYM_ARROW_6;
+    case SYM_HUD_CARDINAL + 9:
+        return BF_SYM_ARROW_EAST;
+    case SYM_HUD_CARDINAL + 10:
+        return BF_SYM_ARROW_3;
+    case SYM_HUD_CARDINAL + 11:
+        return BF_SYM_ARROW_2;
+
+    case SYM_HUD_ARROWS_R3:
+        return BF_SYM_AH_RIGHT;
+    case SYM_HUD_ARROWS_L3:
+        return BF_SYM_AH_LEFT;
+
+    case SYM_HUD_SIGNAL_0:
+        return BF_SYM_AH_BAR9_1;
+    case SYM_HUD_SIGNAL_1:
+        return BF_SYM_AH_BAR9_3;
+    case SYM_HUD_SIGNAL_2:
+        return BF_SYM_AH_BAR9_4;
+    case SYM_HUD_SIGNAL_3:
+        return BF_SYM_AH_BAR9_5;
+    case SYM_HUD_SIGNAL_4:
+        return BF_SYM_AH_BAR9_7;
 /*
     case SYM_VARIO_UP_2A:
         return BF_SYM_VARIO_UP_2A;

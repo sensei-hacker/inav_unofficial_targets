@@ -42,6 +42,7 @@
 #include "drivers/osd_symbols.h"
 
 #include "fc/rc_modes.h"
+#include "fc/runtime_config.h"
 
 #include "io/osd.h"
 #include "io/displayport_msp.h"
@@ -112,6 +113,10 @@ static void checkVtxPresent(void)
 {
     if (vtxActive && (millis()-vtxHeartbeat) > VTX_TIMEOUT) {
         vtxActive = false;
+    }
+
+    if (ARMING_FLAG(SIMULATOR_MODE_HITL)) { 
+        vtxActive = true;
     }
 }
 
@@ -288,7 +293,8 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
         uint8_t len = 4;
         do {
             bitArrayClr(dirty, pos);
-            subcmd[len++] = isBfCompatibleVideoSystem(osdConfig()) ? getBfCharacter(screen[pos++], page): screen[pos++];
+            subcmd[len] = isBfCompatibleVideoSystem(osdConfig()) ? getBfCharacter(screen[pos++], page): screen[pos++];
+            len++;
 
             if (bitArrayGet(dirty, pos)) {
                 next = pos;
@@ -325,7 +331,7 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
         vtxReset = false;
     }
 
-return 0;
+    return 0;
 }
 
 static void resync(displayPort_t *displayPort)
@@ -356,6 +362,10 @@ static bool getFontMetadata(displayFontMetadata_t *metadata, const displayPort_t
 static textAttributes_t supportedTextAttributes(const displayPort_t *displayPort)
 {
     UNUSED(displayPort);
+
+    //textAttributes_t attr = TEXT_ATTRIBUTES_NONE;
+    //TEXT_ATTRIBUTES_ADD_BLINK(attr);
+    //return attr;
     return TEXT_ATTRIBUTES_NONE;
 }
 
