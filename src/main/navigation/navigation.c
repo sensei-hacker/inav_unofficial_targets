@@ -3607,6 +3607,12 @@ bool isProbablyStillFlying(void)
  *-----------------------------------------------------------*/
 float getDesiredClimbRate(float targetAltitude, timeDelta_t deltaMicros)
 {    
+#ifdef USE_GEOZONE
+    if ((geozone.currentzoneMaxAltitude > 0 && navGetCurrentActualPositionAndVelocity()->pos.z >= geozone.currentzoneMaxAltitude && posControl.desiredState.climbRateDemand > 0) || 
+        (geozone.currentzoneMinAltitude > 0 && navGetCurrentActualPositionAndVelocity()->pos.z <= geozone.currentzoneMinAltitude && posControl.desiredState.climbRateDemand < 0 )) {
+        return 0.0f;
+    }
+#endif
     
     const bool emergLandingIsActive = navigationIsExecutingAnEmergencyLanding();
     

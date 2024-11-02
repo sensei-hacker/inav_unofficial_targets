@@ -197,7 +197,6 @@ typedef struct geozone_s {
     int32_t zoneInfo;
     int32_t currentzoneMaxAltitude; 
     int32_t currentzoneMinAltitude;
-    bool nearestHorZoneHasAction;
     bool sticksLocked;
     int8_t loiterDir;
     bool avoidInRTHInProgress;
