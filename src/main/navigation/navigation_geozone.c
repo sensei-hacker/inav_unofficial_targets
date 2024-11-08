@@ -755,6 +755,7 @@ static int8_t calcRthCourse(fpVector3_t* waypoints, const fpVector3_t* point, fp
         pathPoint_t *next = current;
         float min = FLT_MAX;
         for (uint8_t i = 1; i < pathPointCount; i++) {
+            
             float currentDist = FLT_MAX;
             if (isPointDirectReachable(&current->point, &pathPoints[i].point)) {
                 float dist2D = calculateDistance2((fpVector2_t*)&current->point, (fpVector2_t*)&pathPoints[i].point);
