@@ -336,7 +336,7 @@ void taskUpdateAux(timeUs_t currentTimeUs)
 #endif
 }
 
-#if defined(USE_GEOZONE) && defined (USE_GPS)
+#ifdef USE_GEOZONE
 void geozoneUpdateTask(timeUs_t currentTimeUs)
 {
     if (feature(FEATURE_GEOZONE)) {
@@ -460,7 +460,7 @@ void fcTasksInit(void)
     serialProxyStart();
 #endif
 
-#if defined(USE_GEOZONE) && defined (USE_GPS)
+#ifdef USE_GEOZONE
     setTaskEnabled(TASK_GEOZONE, feature(FEATURE_GEOZONE));
 #endif
 
@@ -751,7 +751,7 @@ cfTask_t cfTasks[TASK_COUNT] = {
     },
 #endif
 
-#if defined(USE_GEOZONE) && defined (USE_GPS)
+#ifdef USE_GEOZONE
     [TASK_GEOZONE] = {
         .taskName = "GEOZONE",
         .taskFunc = geozoneUpdateTask,
