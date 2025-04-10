@@ -122,12 +122,28 @@
 #define UART3_RX_PIN            PB11
 #define UART3_TX_PIN            PB10
 
+#define USE_UART4
+#define UART4_RX_PIN            PC11
+#define UART4_TX_PIN            PC10
+
 #define USE_UART5
 #define UART5_RX_PIN            PB8
 #define UART5_TX_PIN            PB9
 
+#define USE_UART6
+#define UART6_RX_PIN            PC7
+#define UART6_TX_PIN            PC6
 
-#define SERIAL_PORT_COUNT       5
+#define USE_UART7
+#define USE_UART7_PIN_SWAP
+#define UART7_RX_PIN            PC0
+#define UART7_TX_PIN            PC1
+
+#define USE_UART8
+#define UART8_RX_PIN            PC3
+#define UART8_TX_PIN            PC2
+
+#define SERIAL_PORT_COUNT       9
 
 #define DEFAULT_RX_TYPE         RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_CRSF
