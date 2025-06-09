@@ -119,6 +119,8 @@
 #define VBAT_ADC_CHANNEL            ADC_CHN_1
 #define CURRENT_METER_ADC_CHANNEL   ADC_CHN_2
 
+#define VBAT_SCALE_DEFAULT          1420
+
 // *************** PINIO ***************************
 #define USE_PINIO
 #define USE_PINIOBOX
