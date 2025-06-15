@@ -39,7 +39,6 @@
 
 #define INAV_POSITION_PUBLISH_RATE_HZ       50      // Publish position updates at this rate
 #define INAV_PITOT_UPDATE_RATE              10
-#define INAV_COG_UPDATE_RATE_HZ             20      // ground course update rate
 
 #define INAV_GPS_TIMEOUT_MS                 1500    // GPS timeout
 #define INAV_BARO_TIMEOUT_MS                200     // Baro timeout
@@ -66,10 +65,6 @@ typedef struct {
 
 typedef struct {
     timeUs_t    lastUpdateTime; // Last update time (us)
-#if defined(NAV_GPS_GLITCH_DETECTION)
-    bool        glitchDetected;
-    bool        glitchRecovery;
-#endif
     fpVector3_t pos;            // GPS position in NEU coordinate system (cm)
     fpVector3_t vel;            // GPS velocity (cms)
     float       eph;
@@ -150,6 +145,13 @@ typedef enum {
     EST_XY_VALID                = (1 << 5),
     EST_Z_VALID                 = (1 << 6),
 } navPositionEstimationFlags_e;
+
+typedef enum {
+    ALTITUDE_SOURCE_GPS,
+    ALTITUDE_SOURCE_BARO,
+    ALTITUDE_SOURCE_GPS_ONLY,
+    ALTITUDE_SOURCE_BARO_ONLY,
+} navDefaultAltitudeSensor_e;
 
 typedef struct {
     timeUs_t    baroGroundTimeout;

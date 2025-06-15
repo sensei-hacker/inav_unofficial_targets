@@ -98,13 +98,7 @@
 // Mag 
 #define USE_MAG
 #define MAG_I2C_BUS          BUS_I2C1
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_IST8308
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
-#define USE_MAG_MLX90393
+#define USE_MAG_ALL
 
 /*** Onboard Flash ***/    
 #define USE_SPI_DEVICE_3
@@ -148,7 +142,8 @@
 #define SERIALRX_UART        SERIAL_PORT_USART2
 #define DEFAULT_RX_TYPE      RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER    SERIALRX_CRSF
-#define CURRENT_METER_SCALE  250
+#define CURRENT_METER_SCALE  589
+#define CURRENT_METER_OFFSET -204
 
 /*** Optical Flow & Lidar ***/
 #define USE_RANGEFINDER

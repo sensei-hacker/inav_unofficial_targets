@@ -81,7 +81,11 @@ typedef enum {
     LOGIC_CONDITION_TIMER                       = 49,
     LOGIC_CONDITION_DELTA                       = 50,
     LOGIC_CONDITION_APPROX_EQUAL                = 51,
-    LOGIC_CONDITION_LAST                        = 52,
+    LOGIC_CONDITION_LED_PIN_PWM                 = 52,
+    LOGIC_CONDITION_DISABLE_GPS_FIX             = 53,
+    LOGIC_CONDITION_RESET_MAG_CALIBRATION       = 54,
+    LOGIC_CONDITION_SET_GIMBAL_SENSITIVITY      = 55,
+    LOGIC_CONDITION_LAST                        = 56,
 } logicOperation_e;
 
 typedef enum logicOperandType_s {
@@ -126,8 +130,8 @@ typedef enum {
     LOGIC_CONDITION_OPERAND_FLIGHT_STABILIZED_PITCH,                        // 26
     LOGIC_CONDITION_OPERAND_FLIGHT_STABILIZED_YAW,                          // 27
     LOGIC_CONDITION_OPERAND_FLIGHT_3D_HOME_DISTANCE,                        // 28
-    LOGIC_CONDITION_OPERAND_FLIGHT_CRSF_LQ,                                 // 29
-    LOGIC_CONDITION_OPERAND_FLIGHT_CRSF_SNR,                                // 39
+    LOGIC_CONDITION_OPERAND_FLIGHT_LQ_UPLINK,                               // 29
+    LOGIC_CONDITION_OPERAND_FLIGHT_SNR,                                     // 39
     LOGIC_CONDITION_OPERAND_FLIGHT_GPS_VALID, // 0/1                        // 31
     LOGIC_CONDITION_OPERAND_FLIGHT_LOITER_RADIUS,                           // 32
     LOGIC_CONDITION_OPERAND_FLIGHT_ACTIVE_PROFILE, //int                    // 33
@@ -135,8 +139,14 @@ typedef enum {
     LOGIC_CONDITION_OPERAND_FLIGHT_AGL_STATUS, //0,1,2                      // 35
     LOGIC_CONDITION_OPERAND_FLIGHT_AGL, //0,1,2                             // 36
     LOGIC_CONDITION_OPERAND_FLIGHT_RANGEFINDER_RAW, //int                   // 37
-    LOGIC_CONDITION_OPERAND_FLIGHT_ACTIVE_MIXER_PROFILE, //int              // 39
-    LOGIC_CONDITION_OPERAND_FLIGHT_MIXER_TRANSITION_ACTIVE, //0,1           // 40
+    LOGIC_CONDITION_OPERAND_FLIGHT_ACTIVE_MIXER_PROFILE, //int              // 38
+    LOGIC_CONDITION_OPERAND_FLIGHT_MIXER_TRANSITION_ACTIVE, //0,1           // 39
+    LOGIC_CONDITION_OPERAND_FLIGHT_ATTITUDE_YAW, // deg                     // 40
+    LOGIC_CONDITION_OPERAND_FLIGHT_FW_LAND_STATE,                           // 41
+    LOGIC_CONDITION_OPERAND_FLIGHT_BATT_PROFILE, // int                     // 42
+    LOGIC_CONDITION_OPERAND_FLIGHT_FLOWN_LOITER_RADIUS,                     // 43
+    LOGIC_CONDITION_OPERAND_FLIGHT_LQ_DOWNLINK,                             // 44
+    LOGIC_CONDITION_OPERAND_FLIGHT_UPLINK_RSSI_DBM,                         // 45
 } logicFlightOperands_e;
 
 typedef enum {
@@ -156,6 +166,7 @@ typedef enum {
     LOGIC_CONDITION_OPERAND_FLIGHT_MODE_USER4,                              // 13
     LOGIC_CONDITION_OPERAND_FLIGHT_MODE_ACRO,                               // 14
     LOGIC_CONDITION_OPERAND_FLIGHT_MODE_WAYPOINT_MISSION,                   // 15
+    LOGIC_CONDITION_OPERAND_FLIGHT_MODE_ANGLEHOLD,                          // 16
 } logicFlightModeOperands_e;
 
 typedef enum {
@@ -187,6 +198,9 @@ typedef enum {
     LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_RC_CHANNEL = (1 << 8),
     LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_LOITER_RADIUS = (1 << 9),
     LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_FLIGHT_AXIS = (1 << 10),
+#ifdef USE_GPS_FIX_ESTIMATION
+    LOGIC_CONDITION_GLOBAL_FLAG_DISABLE_GPS_FIX = (1 << 11),
+#endif
 } logicConditionsGlobalFlags_t;
 
 typedef enum {
@@ -238,9 +252,9 @@ extern uint64_t logicConditionsGlobalFlags;
 
 void logicConditionProcess(uint8_t i);
 
-int logicConditionGetOperandValue(logicOperandType_e type, int operand);
+int32_t logicConditionGetOperandValue(logicOperandType_e type, int operand);
 
-int logicConditionGetValue(int8_t conditionId);
+int32_t logicConditionGetValue(int8_t conditionId);
 void logicConditionUpdateTask(timeUs_t currentTimeUs);
 void logicConditionReset(void);
 

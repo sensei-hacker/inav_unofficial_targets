@@ -115,14 +115,7 @@
 //Mag
 #define USE_MAG
 #define MAG_I2C_BUS             BUS_I2C1
-#define USE_MAG_AK8963
-#define USE_MAG_AK8975
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
-#define USE_MAG_VCM5883
+#define USE_MAG_ALL
 
 #define RANGEFINDER_I2C_BUS     BUS_I2C1
 #define PITOT_I2C_BUS           BUS_I2C1
@@ -155,8 +148,8 @@
 #define ADC_CHANNEL_4_PIN           PC4
 #define VBAT_ADC_CHANNEL            ADC_CHN_1
 #define CURRENT_METER_ADC_CHANNEL   ADC_CHN_2
-#define RSSI_ADC_CHANNEL            ADC_CHN_4
-#define AIRSPEED_ADC_CHANNEL        ADC_CHN_3
+#define RSSI_ADC_CHANNEL            ADC_CHN_3
+#define AIRSPEED_ADC_CHANNEL        ADC_CHN_4
 
 // *************** LED2812 ************************
 #define USE_LED_STRIP
@@ -176,3 +169,7 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define MAX_PWM_OUTPUT_PORTS       11
+
+#define USE_PINIO
+#define USE_PINIOBOX
+#define PINIO1_PIN                  PC13

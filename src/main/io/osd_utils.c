@@ -20,7 +20,7 @@
 #include "common/maths.h"
 #include "common/typeconversion.h"
 #include "drivers/osd_symbols.h"
-#include "io/displayport_msp_bf_compat.h"
+#include "io/displayport_msp_dji_compat.h"
 
 #if defined(USE_OSD) || defined(OSD_UNIT_TEST)
 
@@ -38,14 +38,14 @@ int digitCount(int32_t value)
 }
 
 
-bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int maxDecimals, int maxScaledDecimals, int length)
+bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int maxDecimals, int maxScaledDecimals, int length, bool leadingZeros)
 {
     char *ptr = buff;
     char *dec;
     int decimals = maxDecimals;
     bool negative = false;
     bool scaled = false;
-    bool explicitDecimal = isBfCompatibleVideoSystem(osdConfig());
+    bool explicitDecimal = isDJICompatibleVideoSystem(osdConfig());
 
     buff[length] = '\0';
 
@@ -86,7 +86,11 @@ bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int ma
     // Done counting. Time to write the characters.
     // Write spaces at the start
     while (remaining > 0) {
-        *ptr = SYM_BLANK;
+        if (leadingZeros) 
+            *ptr = '0';
+        else
+            *ptr = SYM_BLANK;
+
         ptr++;
         remaining--;
     }
@@ -98,7 +102,11 @@ bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int ma
         // Add any needed remaining leading spaces
         while(rem_spaces > 0)
         {
-            *ptr = SYM_BLANK;
+            if (leadingZeros) 
+                *ptr = '0';
+            else
+                *ptr = SYM_BLANK;
+
             ptr++;
             remaining--;
             rem_spaces--;

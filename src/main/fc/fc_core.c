@@ -106,6 +106,7 @@ enum {
 #define EMERGENCY_ARMING_TIME_WINDOW_MS 10000
 #define EMERGENCY_ARMING_COUNTER_STEP_MS 1000
 #define EMERGENCY_ARMING_MIN_ARM_COUNT 10
+#define EMERGENCY_INFLIGHT_REARM_TIME_WINDOW_MS 5000
 
 timeDelta_t cycleTime = 0;         // this is the number in micro second to achieve a full loop, it can differ a little and is taken into account in the PID loop
 static timeUs_t flightTime = 0;
@@ -120,6 +121,7 @@ uint8_t motorControlEnable = false;
 static bool isRXDataNew;
 static disarmReason_t lastDisarmReason = DISARM_NONE;
 timeUs_t lastDisarmTimeUs = 0;
+timeMs_t emergRearmStabiliseTimeout = 0;
 
 static bool prearmWasReset = false; // Prearm must be reset (RC Mode not active) before arming is possible
 static timeMs_t prearmActivationTime = 0;
@@ -235,7 +237,7 @@ static void updateArmingStatus(void)
 
         /* CHECK: pitch / roll sticks centered when NAV_LAUNCH_MODE enabled */
         if (isNavLaunchEnabled()) {
-            if (isRollPitchStickDeflected(rcControlsConfig()->control_deadband)) {
+            if (isRollPitchStickDeflected(CONTROL_DEADBAND)) {
                 ENABLE_ARMING_FLAG(ARMING_DISABLED_ROLLPITCH_NOT_CENTERED);
             } else {
                 DISABLE_ARMING_FLAG(ARMING_DISABLED_ROLLPITCH_NOT_CENTERED);
@@ -276,6 +278,14 @@ static void updateArmingStatus(void)
         }
 #endif
 
+#ifdef USE_GEOZONE
+    if (feature(FEATURE_GEOZONE) && geozoneIsBlockingArming()) {
+        ENABLE_ARMING_FLAG(ARMING_DISABLED_GEOZONE);
+    } else {
+        DISABLE_ARMING_FLAG(ARMING_DISABLED_GEOZONE);
+    }
+#endif
+
         /* CHECK: */
         if (
             sensors(SENSOR_ACC) &&
@@ -305,21 +315,13 @@ static void updateArmingStatus(void)
             DISABLE_ARMING_FLAG(ARMING_DISABLED_BOXFAILSAFE);
         }
 
-        /* CHECK: BOXKILLSWITCH */
-        if (IS_RC_MODE_ACTIVE(BOXKILLSWITCH)) {
-            ENABLE_ARMING_FLAG(ARMING_DISABLED_BOXKILLSWITCH);
-        }
-        else {
-            DISABLE_ARMING_FLAG(ARMING_DISABLED_BOXKILLSWITCH);
-        }
-
         /* CHECK: Do not allow arming if Servo AutoTrim is enabled */
         if (IS_RC_MODE_ACTIVE(BOXAUTOTRIM)) {
-	       ENABLE_ARMING_FLAG(ARMING_DISABLED_SERVO_AUTOTRIM);
-	    }
+           ENABLE_ARMING_FLAG(ARMING_DISABLED_SERVO_AUTOTRIM);
+        }
         else {
-	       DISABLE_ARMING_FLAG(ARMING_DISABLED_SERVO_AUTOTRIM);
-	    }
+           DISABLE_ARMING_FLAG(ARMING_DISABLED_SERVO_AUTOTRIM);
+        }
 
 #ifdef USE_DSHOT
         /* CHECK: Don't arm if the DShot beeper was used recently, as there is a minimum delay before sending the next DShot command */
@@ -346,6 +348,10 @@ static void updateArmingStatus(void)
             }
         } else {
             DISABLE_ARMING_FLAG(ARMING_DISABLED_NO_PREARM);
+        }
+
+        if (ARMING_FLAG(ARMING_DISABLED_LANDING_DETECTED) && !IS_RC_MODE_ACTIVE(BOXARM)) {
+            DISABLE_ARMING_FLAG(ARMING_DISABLED_LANDING_DETECTED);
         }
 
         /* CHECK: Arming switch */
@@ -435,6 +441,7 @@ void disarm(disarmReason_t disarmReason)
         lastDisarmReason = disarmReason;
         lastDisarmTimeUs = micros();
         DISABLE_ARMING_FLAG(ARMED);
+        DISABLE_STATE(IN_FLIGHT_EMERG_REARM);
 
 #ifdef USE_BLACKBOX
         if (feature(FEATURE_BLACKBOX)) {
@@ -453,7 +460,6 @@ void disarm(disarmReason_t disarmReason)
 #ifdef USE_PROGRAMMING_FRAMEWORK
         programmingPidReset();
 #endif
-
         beeper(BEEPER_DISARMING);      // emit disarm tone
 
         prearmWasReset = false;
@@ -505,14 +511,27 @@ bool emergencyArmingUpdate(bool armingSwitchIsOn, bool forceArm)
     return counter >= EMERGENCY_ARMING_MIN_ARM_COUNT;
 }
 
-#define TELEMETRY_FUNCTION_MASK (FUNCTION_TELEMETRY_HOTT | FUNCTION_TELEMETRY_SMARTPORT | FUNCTION_TELEMETRY_LTM | FUNCTION_TELEMETRY_MAVLINK | FUNCTION_TELEMETRY_IBUS)
+bool emergInflightRearmEnabled(void)
+{
+    /* Emergency rearm allowed within 5s timeout period after disarm if craft still flying */
+    timeMs_t currentTimeMs = millis();
+    emergRearmStabiliseTimeout = 0;
 
-void releaseSharedTelemetryPorts(void) {
-    serialPort_t *sharedPort = findSharedSerialPort(TELEMETRY_FUNCTION_MASK, FUNCTION_MSP);
-    while (sharedPort) {
-        mspSerialReleasePortIfAllocated(sharedPort);
-        sharedPort = findNextSharedSerialPort(TELEMETRY_FUNCTION_MASK, FUNCTION_MSP);
+    if ((lastDisarmReason != DISARM_SWITCH) ||
+        (currentTimeMs > US2MS(lastDisarmTimeUs) + EMERGENCY_INFLIGHT_REARM_TIME_WINDOW_MS)) {
+        return false;
     }
+
+    // allow emergency rearm if MR has vertical speed at least 1.5 sec after disarm indicating still flying
+    bool mcDisarmVertVelCheck = STATE(MULTIROTOR) && (currentTimeMs > US2MS(lastDisarmTimeUs) + 1500) && fabsf(getEstimatedActualVelocity(Z)) > 100.0f;
+
+    if (isProbablyStillFlying() || mcDisarmVertVelCheck) {
+        emergRearmStabiliseTimeout = currentTimeMs + 5000;  // activate Angle mode for 5s after rearm to help stabilise craft
+        ENABLE_STATE(IN_FLIGHT_EMERG_REARM);
+        return true;
+    }
+
+    return false;   // craft doesn't appear to be flying, don't allow emergency rearm
 }
 
 void tryArm(void)
@@ -532,15 +551,16 @@ void tryArm(void)
     if (STATE(MULTIROTOR) && turtleIsActive && !FLIGHT_MODE(TURTLE_MODE) && emergencyArmingCanOverrideArmingDisabled() && isMotorProtocolDshot()) {
         sendDShotCommand(DSHOT_CMD_SPIN_DIRECTION_REVERSED);
         ENABLE_ARMING_FLAG(ARMED);
-        enableFlightMode(TURTLE_MODE);
+        ENABLE_FLIGHT_MODE(TURTLE_MODE);
         return;
     }
 #endif
 
 #ifdef USE_PROGRAMMING_FRAMEWORK
-    if (!isArmingDisabled() || emergencyArmingIsEnabled() || LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_ARMING_SAFETY)) {
+    if (emergInflightRearmEnabled() || !isArmingDisabled() || emergencyArmingIsEnabled() ||
+        LOGIC_CONDITION_GLOBAL_FLAG(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_ARMING_SAFETY)) {
 #else
-    if (!isArmingDisabled() || emergencyArmingIsEnabled()) {
+    if (emergInflightRearmEnabled() || !isArmingDisabled() || emergencyArmingIsEnabled()) {
 #endif
         // If nav_extra_arming_safety was bypassed we always
         // allow bypassing it even without the sticks set
@@ -558,11 +578,14 @@ void tryArm(void)
         ENABLE_ARMING_FLAG(WAS_EVER_ARMED);
         //It is required to inform the mixer that arming was executed and it has to switch to the FORWARD direction
         ENABLE_STATE(SET_REVERSIBLE_MOTORS_FORWARD);
-        logicConditionReset();
 
+        if (!STATE(IN_FLIGHT_EMERG_REARM)) {
+            resetLandingDetectorActiveState();  // reset landing detector after arming to avoid false detection before flight
+            logicConditionReset();
 #ifdef USE_PROGRAMMING_FRAMEWORK
-        programmingPidReset();
+            programmingPidReset();
 #endif
+        }
 
         headFreeModeHold = DECIDEGREES_TO_DEGREES(attitude.values.yaw);
 
@@ -592,6 +615,16 @@ void tryArm(void)
 
     if (!ARMING_FLAG(ARMED)) {
         beeperConfirmationBeeps(1);
+    }
+}
+
+#define TELEMETRY_FUNCTION_MASK (FUNCTION_TELEMETRY_HOTT | FUNCTION_TELEMETRY_SMARTPORT | FUNCTION_TELEMETRY_LTM | FUNCTION_TELEMETRY_MAVLINK | FUNCTION_TELEMETRY_IBUS)
+
+void releaseSharedTelemetryPorts(void) {
+    serialPort_t *sharedPort = findSharedSerialPort(TELEMETRY_FUNCTION_MASK, FUNCTION_MSP);
+    while (sharedPort) {
+        mspSerialReleasePortIfAllocated(sharedPort);
+        sharedPort = findNextSharedSerialPort(TELEMETRY_FUNCTION_MASK, FUNCTION_MSP);
     }
 }
 
@@ -645,28 +678,24 @@ void processRx(timeUs_t currentTimeUs)
         processRcAdjustments(CONST_CAST(controlRateConfig_t*, currentControlRateProfile), canUseRxData);
     }
 
-    bool canUseHorizonMode = true;
+    // Angle mode forced on briefly after emergency inflight rearm to help stabilise attitude (currently limited to MR)
+    bool emergRearmAngleEnforce = STATE(MULTIROTOR) && emergRearmStabiliseTimeout > US2MS(currentTimeUs);
+    bool autoEnableAngle = failsafeRequiresAngleMode() || navigationRequiresAngleMode() || emergRearmAngleEnforce;
 
-    if ((IS_RC_MODE_ACTIVE(BOXANGLE) || failsafeRequiresAngleMode() || navigationRequiresAngleMode()) && sensors(SENSOR_ACC)) {
-        // bumpless transfer to Level mode
-        canUseHorizonMode = false;
+    /* Disable stabilised modes initially, will be enabled as required with priority ANGLE > HORIZON > ANGLEHOLD
+     * MANUAL mode has priority over these modes except when ANGLE auto enabled */
+    DISABLE_FLIGHT_MODE(ANGLE_MODE);
+    DISABLE_FLIGHT_MODE(HORIZON_MODE);
+    DISABLE_FLIGHT_MODE(ANGLEHOLD_MODE);
 
-        if (!FLIGHT_MODE(ANGLE_MODE)) {
+    if (sensors(SENSOR_ACC) && (!FLIGHT_MODE(MANUAL_MODE) || autoEnableAngle)) {
+        if (IS_RC_MODE_ACTIVE(BOXANGLE) || autoEnableAngle) {
             ENABLE_FLIGHT_MODE(ANGLE_MODE);
-        }
-    } else {
-        DISABLE_FLIGHT_MODE(ANGLE_MODE); // failsafe support
-    }
-
-    if (IS_RC_MODE_ACTIVE(BOXHORIZON) && canUseHorizonMode) {
-
-        DISABLE_FLIGHT_MODE(ANGLE_MODE);
-
-        if (!FLIGHT_MODE(HORIZON_MODE)) {
+        } else if (IS_RC_MODE_ACTIVE(BOXHORIZON)) {
             ENABLE_FLIGHT_MODE(HORIZON_MODE);
+        } else if (STATE(AIRPLANE) && IS_RC_MODE_ACTIVE(BOXANGLEHOLD)) {
+            ENABLE_FLIGHT_MODE(ANGLEHOLD_MODE);
         }
-    } else {
-        DISABLE_FLIGHT_MODE(HORIZON_MODE);
     }
 
     if (FLIGHT_MODE(ANGLE_MODE) || FLIGHT_MODE(HORIZON_MODE)) {
@@ -677,18 +706,14 @@ void processRx(timeUs_t currentTimeUs)
 
     /* Flaperon mode */
     if (IS_RC_MODE_ACTIVE(BOXFLAPERON) && STATE(FLAPERON_AVAILABLE)) {
-        if (!FLIGHT_MODE(FLAPERON)) {
-            ENABLE_FLIGHT_MODE(FLAPERON);
-        }
+        ENABLE_FLIGHT_MODE(FLAPERON);
     } else {
         DISABLE_FLIGHT_MODE(FLAPERON);
     }
 
     /* Turn assistant mode */
-    if (IS_RC_MODE_ACTIVE(BOXTURNASSIST)) {
-        if (!FLIGHT_MODE(TURN_ASSISTANT)) {
-            ENABLE_FLIGHT_MODE(TURN_ASSISTANT);
-        }
+    if (IS_RC_MODE_ACTIVE(BOXTURNASSIST) || navigationRequiresTurnAssistance()) {
+         ENABLE_FLIGHT_MODE(TURN_ASSISTANT);
     } else {
         DISABLE_FLIGHT_MODE(TURN_ASSISTANT);
     }
@@ -707,9 +732,7 @@ void processRx(timeUs_t currentTimeUs)
 #if defined(USE_MAG)
     if (sensors(SENSOR_ACC) || sensors(SENSOR_MAG)) {
         if (IS_RC_MODE_ACTIVE(BOXHEADFREE) && STATE(MULTIROTOR)) {
-            if (!FLIGHT_MODE(HEADFREE_MODE)) {
-                ENABLE_FLIGHT_MODE(HEADFREE_MODE);
-            }
+            ENABLE_FLIGHT_MODE(HEADFREE_MODE);
         } else {
             DISABLE_FLIGHT_MODE(HEADFREE_MODE);
         }
@@ -727,6 +750,8 @@ void processRx(timeUs_t currentTimeUs)
         } else {
             DISABLE_FLIGHT_MODE(MANUAL_MODE);
         }
+    } else {
+        DISABLE_FLIGHT_MODE(MANUAL_MODE);
     }
 
     /* In airmode Iterm should be prevented to grow when Low thottle and Roll + Pitch Centered.
@@ -746,52 +771,52 @@ void processRx(timeUs_t currentTimeUs)
     }
     else if (rcControlsConfig()->airmodeHandlingType == STICK_CENTER) {
         if (throttleIsLow) {
-             if (STATE(AIRMODE_ACTIVE)) {
-                 if ((rollPitchStatus == CENTERED) || (ifMotorstopFeatureEnabled() && !STATE(FIXED_WING_LEGACY))) {
-                     ENABLE_STATE(ANTI_WINDUP);
-                 }
-                 else {
-                     DISABLE_STATE(ANTI_WINDUP);
-                 }
-             }
-             else {
-                 DISABLE_STATE(ANTI_WINDUP);
-                 pidResetErrorAccumulators();
-             }
-         }
-         else {
-             DISABLE_STATE(ANTI_WINDUP);
-         }
+            if (STATE(AIRMODE_ACTIVE)) {
+                if ((rollPitchStatus == CENTERED) || (ifMotorstopFeatureEnabled() && !STATE(FIXED_WING_LEGACY))) {
+                    ENABLE_STATE(ANTI_WINDUP);
+                }
+                else {
+                    DISABLE_STATE(ANTI_WINDUP);
+                }
+            }
+            else {
+                DISABLE_STATE(ANTI_WINDUP);
+                pidResetErrorAccumulators();
+            }
+        }
+        else {
+            DISABLE_STATE(ANTI_WINDUP);
+        }
     }
     else if (rcControlsConfig()->airmodeHandlingType == STICK_CENTER_ONCE) {
         if (throttleIsLow) {
-             if (STATE(AIRMODE_ACTIVE)) {
-                 if ((rollPitchStatus == CENTERED) && !STATE(ANTI_WINDUP_DEACTIVATED)) {
-                     ENABLE_STATE(ANTI_WINDUP);
-                 }
-                 else {
-                     DISABLE_STATE(ANTI_WINDUP);
-                 }
-             }
-             else {
-                 DISABLE_STATE(ANTI_WINDUP);
-                 pidResetErrorAccumulators();
-             }
-         }
-         else {
-             DISABLE_STATE(ANTI_WINDUP);
-             if (rollPitchStatus != CENTERED) {
-                 ENABLE_STATE(ANTI_WINDUP_DEACTIVATED);
-             }
-         }
+            if (STATE(AIRMODE_ACTIVE)) {
+                if ((rollPitchStatus == CENTERED) && !STATE(ANTI_WINDUP_DEACTIVATED)) {
+                    ENABLE_STATE(ANTI_WINDUP);
+                }
+                else {
+                    DISABLE_STATE(ANTI_WINDUP);
+                }
+            }
+            else {
+                DISABLE_STATE(ANTI_WINDUP);
+                pidResetErrorAccumulators();
+            }
+        }
+        else {
+            DISABLE_STATE(ANTI_WINDUP);
+            if (rollPitchStatus != CENTERED) {
+                ENABLE_STATE(ANTI_WINDUP_DEACTIVATED);
+            }
+        }
     }
     else if (rcControlsConfig()->airmodeHandlingType == THROTTLE_THRESHOLD) {
-         DISABLE_STATE(ANTI_WINDUP);
-         //This case applies only to MR when Airmode management is throttle threshold activated
-         if (throttleIsLow && !STATE(AIRMODE_ACTIVE)) {
-             pidResetErrorAccumulators();
-         }
-     }
+        DISABLE_STATE(ANTI_WINDUP);
+        //This case applies only to MR when Airmode management is throttle threshold activated
+        if (throttleIsLow && !STATE(AIRMODE_ACTIVE)) {
+            pidResetErrorAccumulators();
+        }
+    }
 //---------------------------------------------------------
     if (currentMixerConfig.platformType == PLATFORM_AIRPLANE) {
         DISABLE_FLIGHT_MODE(HEADFREE_MODE);
@@ -814,7 +839,8 @@ void processRx(timeUs_t currentTimeUs)
         }
     }
 #endif
-
+    // Sound a beeper if the flight mode state has changed
+    updateFlightModeChangeBeeper();
 }
 
 // Function for loop trigger
@@ -862,7 +888,9 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
     cycleTime = getTaskDeltaTime(TASK_SELF);
     dT = (float)cycleTime * 0.000001f;
 
-    if (ARMING_FLAG(ARMED) && (!STATE(FIXED_WING_LEGACY) || !isNavLaunchEnabled() || (isNavLaunchEnabled() && fixedWingLaunchStatus() >= FW_LAUNCH_DETECTED))) {
+    bool fwLaunchIsActive = STATE(AIRPLANE) && isNavLaunchEnabled() && armTime == 0;
+
+    if (ARMING_FLAG(ARMED) && (!STATE(AIRPLANE) || !fwLaunchIsActive || fixedWingLaunchStatus() >= FW_LAUNCH_DETECTED)) {
         flightTime += cycleTime;
         armTime += cycleTime;
         updateAccExtremes();
@@ -871,11 +899,18 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
     if (!ARMING_FLAG(ARMED)) {
         armTime = 0;
 
-        processDelayedSave();
+        // Delay saving for 0.5s to allow other functions to process save actions on disarm
+        if (currentTimeUs - lastDisarmTimeUs > USECS_PER_SEC / 2) {
+            processDelayedSave();
+        }
+    }
+
+    if (armTime > 1 * USECS_PER_SEC) {     // reset in flight emerg rearm flag 1 sec after arming once it's served its purpose
+        DISABLE_STATE(IN_FLIGHT_EMERG_REARM);
     }
 
 #if defined(SITL_BUILD)
-    if (lockMainPID()) {
+    if (ARMING_FLAG(SIMULATOR_MODE_HITL) || lockMainPID()) {
 #endif
 
     gyroFilter();
@@ -923,15 +958,15 @@ void taskMainPidLoop(timeUs_t currentTimeUs)
     //Servos should be filtered or written only when mixer is using servos or special feaures are enabled
 
 #ifdef USE_SIMULATOR
-	if (!ARMING_FLAG(SIMULATOR_MODE_HITL)) {
-	    if (isServoOutputEnabled()) {
-	        writeServos();
-	    }
+    if (!ARMING_FLAG(SIMULATOR_MODE_HITL)) {
+        if (isServoOutputEnabled()) {
+            writeServos();
+        }
 
-	    if (motorControlEnable) {
-	        writeMotors();
-	    }
-	}
+        if (motorControlEnable) {
+            writeMotors();
+        }
+    }
 #else
     if (isServoOutputEnabled()) {
         writeServos();
@@ -989,6 +1024,10 @@ void taskUpdateRxMain(timeUs_t currentTimeUs)
 float getFlightTime(void)
 {
     return US2S(flightTime);
+}
+
+void resetFlightTime(void) {
+    flightTime = 0;
 }
 
 float getArmTime(void)

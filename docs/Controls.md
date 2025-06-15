@@ -23,9 +23,9 @@ The stick positions are combined to activate different functions:
 
 | Function                      | Throttle | Yaw     | Pitch  | Roll   |
 | ----------------------------- | -------- | ------- | ------ | ------ |
-| Profile 1                     | LOW      | LOW     | CENTER | LOW    |
-| Profile 2                     | LOW      | LOW     | HIGH   | CENTER |
-| Profile 3                     | LOW      | LOW     | CENTER | HIGH   |
+| Control Profile 1             | LOW      | LOW     | CENTER | LOW    |
+| Control Profile 2             | LOW      | LOW     | HIGH   | CENTER |
+| Control Profile 3             | LOW      | LOW     | CENTER | HIGH   |
 | Battery profile 1             | HIGH     | LOW     | CENTER | LOW    |
 | Battery profile 2             | HIGH     | LOW     | HIGH   | CENTER |
 | Battery profile 3             | HIGH     | LOW     | CENTER | HIGH   |
@@ -44,9 +44,9 @@ The stick positions are combined to activate different functions:
 | Bypass Nav Arm disable        | LOW      | HIGH    | CENTER | CENTER |
 | Save setting                  | LOW      | LOW     | LOW    | HIGH   |
 | Enter OSD Menu (CMS)          | CENTER   | LOW     | HIGH   | CENTER |
-| Enter Camera OSD(RuncamDevice)| RIGHT    | CENTER  | CENTER | CENTER |
-| Exit Camera OSD (RuncamDevice)| LEFT     | CENTER  | CENTER | CENTER |
-| Confirm - Camera OSD          | RIGHT    | CENTER  | CENTER | CENTER |
+| Enter Camera OSD(RuncamDevice)| CENTER   | HIGH    | CENTER | CENTER |
+| Exit Camera OSD (RuncamDevice)| CENTER   | LOW     | CENTER | CENTER |
+| Confirm - Camera OSD          | CENTER   | HIGH    | CENTER | CENTER |
 | Navigation - Camera OSD       | CENTER   | CENTER  | *      | *      |
 
 For graphical stick position in all transmitter modes, check out [this page](https://www.mrd-rc.com/tutorials-tools-and-testing/inav-flight/inav-stick-commands-for-all-transmitter-modes/).

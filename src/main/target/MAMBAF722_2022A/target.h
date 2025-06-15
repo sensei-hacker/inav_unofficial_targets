@@ -23,6 +23,7 @@
 
 #define TARGET_BOARD_IDENTIFIER         "M72B"
 #define USBD_PRODUCT_STRING             "MAMBAF722_2022B"
+#define USE_DSHOT_DMAR
 
 #else
 
@@ -86,11 +87,7 @@
 #define USE_MAG
 #define MAG_I2C_BUS                     DEFAULT_I2C_BUS
 
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
+#define USE_MAG_ALL
 
 // ******* SERIAL ********
 #define USE_VCP

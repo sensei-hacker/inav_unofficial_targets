@@ -122,8 +122,8 @@ int8_t radarGetNearestPOI(void)
  */
 void osdHudDrawPoi(uint32_t poiDistance, int16_t poiDirection, int32_t poiAltitude, uint8_t poiType, uint16_t poiSymbol, int16_t poiP1, int16_t poiP2)
 {
-    int poi_x;
-    int poi_y;
+    int poi_x = -1;
+    int poi_y = -1;
     uint8_t center_x;
     uint8_t center_y;
     bool poi_is_oos = 0;
@@ -207,7 +207,7 @@ void osdHudDrawPoi(uint32_t poiDistance, int16_t poiDirection, int32_t poiAltitu
 
     if (poiType == 1) { // POI from the ESP radar
         error_x = hudWrap360(poiP1 - DECIDEGREES_TO_DEGREES(osdGetHeading()));
-        osdHudWrite(poi_x - 1, poi_y, SYM_DIRECTION + ((error_x + 22) / 45) % 8, 1);
+        osdHudWrite(poi_x - 1, poi_y, SYM_DECORATION + ((error_x + 22) / 45) % 8, 1);
         osdHudWrite(poi_x + 1, poi_y, SYM_HUD_SIGNAL_0 + poiP2, 1);
     }
     else if (poiType == 2) { // Waypoint,
@@ -248,7 +248,7 @@ void osdHudDrawPoi(uint32_t poiDistance, int16_t poiDirection, int32_t poiAltitu
             tfp_sprintf(buff, "%3d", altc);
         }
 
-        buff[0] = (poiAltitude >= 0) ? SYM_AH_DIRECTION_UP : SYM_AH_DIRECTION_DOWN;
+        buff[0] = (poiAltitude >= 0) ? SYM_AH_DECORATION_UP : SYM_AH_DECORATION_DOWN;
     } else { // Display the distance by default 
         switch ((osd_unit_e)osdConfig()->units) {
             case OSD_UNIT_UK:
@@ -256,18 +256,18 @@ void osdHudDrawPoi(uint32_t poiDistance, int16_t poiDirection, int32_t poiAltitu
             case OSD_UNIT_IMPERIAL:
                 {
                     if (poiType == 1) {
-                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), FEET_PER_MILE, 0, 4, 4);
+                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), FEET_PER_MILE, 0, 4, 4, false);
                     } else {
-                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), FEET_PER_MILE, 0, 3, 3);
+                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), FEET_PER_MILE, 0, 3, 3, false);
                     }
                 }
                 break;
             case OSD_UNIT_GA:
                 {
                     if (poiType == 1) {
-                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), (uint32_t)FEET_PER_NAUTICALMILE, 0, 4, 4);
+                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), (uint32_t)FEET_PER_NAUTICALMILE, 0, 4, 4, false);
                     } else {
-                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), (uint32_t)FEET_PER_NAUTICALMILE, 0, 3, 3);
+                        osdFormatCentiNumber(buff, CENTIMETERS_TO_CENTIFEET(poiDistance * 100), (uint32_t)FEET_PER_NAUTICALMILE, 0, 3, 3, false);
                     }
                 }
                 break;
@@ -278,9 +278,9 @@ void osdHudDrawPoi(uint32_t poiDistance, int16_t poiDirection, int32_t poiAltitu
             case OSD_UNIT_METRIC:
                 {
                     if (poiType == 1) {
-                        osdFormatCentiNumber(buff, poiDistance * 100, METERS_PER_KILOMETER, 0, 4, 4);
+                        osdFormatCentiNumber(buff, poiDistance * 100, METERS_PER_KILOMETER, 0, 4, 4, false);
                     } else {
-                        osdFormatCentiNumber(buff, poiDistance * 100, METERS_PER_KILOMETER, 0, 3, 3);
+                        osdFormatCentiNumber(buff, poiDistance * 100, METERS_PER_KILOMETER, 0, 3, 3, false);
                     }
                 }
                 break;

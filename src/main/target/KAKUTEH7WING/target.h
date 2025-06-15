@@ -107,19 +107,13 @@
 
 #define USE_MAG
 #define MAG_I2C_BUS BUS_I2C1
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_IST8308
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
-#define USE_MAG_VCM5883
+#define USE_MAG_ALL
 
-#define TEMPERATURE_I2C_BUS     BUS_I2C1
-#define PITOT_I2C_BUS           BUS_I2C1
+#define TEMPERATURE_I2C_BUS     BUS_I2C2
+#define PITOT_I2C_BUS           BUS_I2C2
 
 #define USE_RANGEFINDER
-#define RANGEFINDER_I2C_BUS BUS_I2C1
+#define RANGEFINDER_I2C_BUS BUS_I2C2
 
 // *************** UART *****************************
 #define USE_VCP
@@ -177,8 +171,9 @@
 // *************** PINIO ***************************
 #define USE_PINIO
 #define USE_PINIOBOX
-#define PINIO1_PIN                  PC13  // VTX power switcher
-#define PINIO2_PIN                  PE3   // 2xCamera switcher
+#define PINIO1_PIN                  PC13  // 2xCamera switcher
+#define PINIO2_PIN                  PE3   // VTX power switcher
+#define PINIO2_FLAGS                PINIO_FLAGS_INVERTED
 #define PINIO3_PIN                  PD4   // User1
 #define PINIO4_PIN                  PE4   // User2
 

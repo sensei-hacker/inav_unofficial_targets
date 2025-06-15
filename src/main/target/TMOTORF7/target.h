@@ -44,6 +44,16 @@
 #define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_BUS         BUS_SPI1
 
+#define USE_IMU_ICM42605
+#define IMU_ICM42605_ALIGN      CW0_DEG
+#define ICM42605_CS_PIN         PA4
+#define ICM42605_SPI_BUS        BUS_SPI1
+
+#define USE_IMU_BMI270
+#define IMU_BMI270_ALIGN        CW0_DEG
+#define BMI270_CS_PIN           PA4
+#define BMI270_SPI_BUS          BUS_SPI1
+
 // *************** I2C Mag *********************
 #define USE_I2C
 #define USE_I2C_DEVICE_2
@@ -52,21 +62,11 @@
 
 #define USE_BARO
 #define BARO_I2C_BUS            BUS_I2C2
-#define USE_BARO_BMP280
-#define USE_BARO_MS5611
-#define USE_BARO_DPS310
+#define USE_BARO_ALL
 
 #define USE_MAG
 #define MAG_I2C_BUS             BUS_I2C2
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_AK8975
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_IST8308
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
+#define USE_MAG_ALL
 
 // *************** SPI2 OSD ***********************
 #define USE_SPI_DEVICE_2

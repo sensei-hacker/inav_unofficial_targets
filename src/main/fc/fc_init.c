@@ -53,13 +53,14 @@
 #include "drivers/exti.h"
 #include "drivers/io.h"
 #include "drivers/flash.h"
+#include "drivers/gimbal_common.h"
+#include "drivers/headtracker_common.h"
 #include "drivers/light_led.h"
 #include "drivers/nvic.h"
 #include "drivers/osd.h"
 #include "drivers/persistent.h"
 #include "drivers/pwm_esc_detect.h"
 #include "drivers/pwm_mapping.h"
-#include "drivers/pwm_output.h"
 #include "drivers/pwm_output.h"
 #include "drivers/sensor.h"
 #include "drivers/serial.h"
@@ -96,6 +97,7 @@
 #include "flight/power_limits.h"
 #include "flight/rpm_filter.h"
 #include "flight/servos.h"
+#include "flight/ez_tune.h"
 
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/beeper.h"
@@ -107,6 +109,8 @@
 #include "io/displayport_msp_osd.h"
 #include "io/displayport_srxl.h"
 #include "io/flashfs.h"
+#include "io/gimbal_serial.h"
+#include "io/headtracker_msp.h"
 #include "io/gps.h"
 #include "io/ledstrip.h"
 #include "io/osd.h"
@@ -145,6 +149,10 @@
 #include "scheduler/scheduler.h"
 
 #include "telemetry/telemetry.h"
+
+#if defined(SITL_BUILD)
+#include "target/SITL/serial_proxy.h"
+#endif
 
 #ifdef USE_HARDWARE_REVISION_DETECTION
 #include "hardware_revision.h"
@@ -222,18 +230,15 @@ void init(void)
     flashDeviceInitialized = flashInit();
 #endif
 
+#if defined(SITL_BUILD)
+    serialProxyInit();
+#endif
+
     initEEPROM();
     ensureEEPROMContainsValidData();
     suspendRxSignal();
     readEEPROM();
     resumeRxSignal();
-
-#ifdef USE_UNDERCLOCK
-    // Re-initialize system clock to their final values (if necessary)
-    systemClockSetup(systemConfig()->cpuUnderclock);
-#else
-    systemClockSetup(false);
-#endif
 
 #ifdef USE_I2C
     i2cSetSpeed(systemConfig()->i2c_speed);
@@ -255,7 +260,7 @@ void init(void)
     EXTIInit();
 #endif
 
-#ifdef USE_SPEKTRUM_BIND
+#if defined(USE_SPEKTRUM_BIND) && defined(USE_SERIALRX_SPEKTRUM)
     if (rxConfig()->receiverType == RX_TYPE_SERIAL) {
         switch (rxConfig()->serialrx_provider) {
             case SERIALRX_SPEKTRUM1024:
@@ -367,9 +372,8 @@ void init(void)
     updateHardwareRevision();
 #endif
 
-#if defined(USE_SDCARD_SDIO) && defined(STM32H7)
+#if defined(USE_SDCARD_SDIO) && (defined(STM32H7) || defined(STM32F7))
     sdioPinConfigure();
-    SDIO_GPIO_Init();
 #endif
 
 #ifdef USE_USB_MSC
@@ -513,6 +517,14 @@ void init(void)
     // 1-Wire IF chip
 #ifdef USE_1WIRE
     owInit();
+#endif
+
+#ifdef USE_EZ_TUNE
+    ezTuneUpdate();
+#endif
+
+#ifndef USE_GEOZONE
+    featureClear(FEATURE_GEOZONE);
 #endif
 
     if (!sensorsAutodetect()) {
@@ -665,7 +677,9 @@ void init(void)
 #endif
 
 #ifdef USE_VTX_MSP
-    vtxMspInit();
+    if (feature(FEATURE_OSD)) {
+       vtxMspInit();
+    }
 #endif
 
 #endif // USE_VTX_CONTROL
@@ -680,6 +694,23 @@ void init(void)
 
 #ifdef USE_DSHOT
     initDShotCommands();
+#endif
+
+#ifdef USE_SERIAL_GIMBAL
+    gimbalCommonInit();
+    // Needs to be called before gimbalSerialHeadTrackerInit
+    gimbalSerialInit();
+#endif
+
+#ifdef USE_HEADTRACKER
+    headTrackerCommonInit();
+#ifdef USE_HEADTRACKER_SERIAL
+    // Needs to be called after gimbalSerialInit
+    gimbalSerialHeadTrackerInit();
+#endif
+#ifdef USE_HEADTRACKER_MSP
+    mspHeadTrackerInit();
+#endif
 #endif
 
     // Latch active features AGAIN since some may be modified by init().

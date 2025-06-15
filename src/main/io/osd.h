@@ -75,7 +75,6 @@
 #define OSD_MSG_PITOT_FAIL          "PITOT METER FAILURE"
 #define OSD_MSG_HW_FAIL             "HARDWARE FAILURE"
 #define OSD_MSG_FS_EN               "FAILSAFE MODE ENABLED"
-#define OSD_MSG_KILL_SW_EN          "KILLSWITCH MODE ENABLED"
 #define OSD_MSG_NO_RC_LINK          "NO RC LINK"
 #define OSD_MSG_THROTTLE_NOT_LOW    "THROTTLE IS NOT LOW"
 #define OSD_MSG_ROLLPITCH_OFFCENTER "ROLLPITCH NOT CENTERED"
@@ -93,6 +92,7 @@
 #define OSD_MSG_RTH_CLIMB           "ADJUSTING RTH ALTITUDE"
 #define OSD_MSG_RTH_TRACKBACK       "RTH BACK TRACKING"
 #define OSD_MSG_HEADING_HOME        "EN ROUTE TO HOME"
+#define OSD_MSG_RTH_LINEAR_DESCENT  "BEGIN LINEAR DESCENT"
 #define OSD_MSG_WP_FINISHED         "WP END>HOLDING POSITION"
 #define OSD_MSG_WP_LANDED           "WP END>LANDED"
 #define OSD_MSG_PREPARE_NEXT_WP     "PREPARING FOR NEXT WAYPOINT"
@@ -118,6 +118,10 @@
 #define OSD_MSG_UNABLE_ARM          "UNABLE TO ARM"
 #define OSD_MSG_SAVING_SETTNGS      "** SAVING SETTINGS **"
 #define OSD_MSG_SETTINGS_SAVED      "** SETTINGS SAVED **"
+#define OSD_MSG_ANGLEHOLD_ROLL      "(ANGLEHOLD ROLL)"
+#define OSD_MSG_ANGLEHOLD_PITCH     "(ANGLEHOLD PITCH)"
+#define OSD_MSG_ANGLEHOLD_LEVEL     "(ANGLEHOLD LEVEL)"
+#define OSD_MSG_MOVE_STICKS         "MOVE STICKS TO ABORT"
 
 #ifdef USE_DEV_TOOLS
 #define OSD_MSG_GRD_TEST_MODE       "GRD TEST > MOTORS DISABLED"
@@ -126,6 +130,19 @@
 #if defined(USE_SAFE_HOME)
 #define OSD_MSG_DIVERT_SAFEHOME     "DIVERTING TO SAFEHOME"
 #define OSD_MSG_LOITERING_SAFEHOME  "LOITERING AROUND SAFEHOME"
+#endif
+
+#if defined(USE_GEOZONE)
+#define OSD_MSG_NFZ                 "NO FLY ZONE"
+#define OSD_MSG_LEAVING_FZ          "LEAVING FZ IN %s"
+#define OSD_MSG_OUTSIDE_FZ          "OUTSIDE FZ"
+#define OSD_MSG_ENTERING_NFZ        "ENTERING NFZ IN %s %s"
+#define OSD_MSG_AVOIDING_FB         "AVOIDING FENCE BREACH"
+#define OSD_MSG_RETURN_TO_ZONE      "RETURN TO FZ"
+#define OSD_MSG_FLYOUT_NFZ          "FLY OUT NFZ"
+#define OSD_MSG_AVOIDING_ALT_BREACH "REACHED ZONE ALTITUDE LIMIT"
+#define OSD_MSG_AVOID_ZONES_RTH     "AVOIDING NO FLY ZONES"
+#define OSD_MSG_GEOZONE_ACTION      "PERFORM ACTION IN %s %s"
 #endif
 
 typedef enum {
@@ -238,10 +255,10 @@ typedef enum {
     OSD_ESC_RPM,
     OSD_ESC_TEMPERATURE,
     OSD_AZIMUTH,
-    OSD_CRSF_RSSI_DBM,
-    OSD_CRSF_LQ,
-    OSD_CRSF_SNR_DB,
-    OSD_CRSF_TX_POWER,
+    OSD_RSSI_DBM,
+    OSD_LQ_UPLINK,
+    OSD_SNR_DB,
+    OSD_TX_POWER_UPLINK,
     OSD_GVAR_0,
     OSD_GVAR_1,
     OSD_GVAR_2,
@@ -274,15 +291,37 @@ typedef enum {
     OSD_PILOT_NAME,
     OSD_PAN_SERVO_CENTRED,
     OSD_MULTI_FUNCTION,
+    OSD_ODOMETER,
+    OSD_PILOT_LOGO,
+    OSD_CUSTOM_ELEMENT_1,
+    OSD_CUSTOM_ELEMENT_2,
+    OSD_CUSTOM_ELEMENT_3,
+    OSD_ADSB_WARNING, //150
+    OSD_ADSB_INFO,
+    OSD_BLACKBOX,
+    OSD_FORMATION_FLIGHT,
+    OSD_CUSTOM_ELEMENT_4,
+    OSD_CUSTOM_ELEMENT_5,
+    OSD_CUSTOM_ELEMENT_6,
+    OSD_CUSTOM_ELEMENT_7,
+    OSD_CUSTOM_ELEMENT_8,
+    OSD_LQ_DOWNLINK,
+    OSD_RX_POWER_DOWNLINK, // 160
+    OSD_RX_BAND,
+    OSD_RX_MODE,
+    OSD_COURSE_TO_FENCE,
+    OSD_H_DIST_TO_FENCE,
+    OSD_V_DIST_TO_FENCE,
+    OSD_NAV_FW_ALT_CONTROL_RESPONSE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
 typedef enum {
     OSD_UNIT_IMPERIAL,
     OSD_UNIT_METRIC,
-    OSD_UNIT_METRIC_MPH, // Old UK units, all metric except speed in mph
-    OSD_UNIT_UK, // Show everything in imperial, temperature in C
-    OSD_UNIT_GA, // General Aviation: Knots, Nautical Miles, Feet, Degrees C
+    OSD_UNIT_METRIC_MPH,    // Old UK units, all metric except speed in mph
+    OSD_UNIT_UK,            // Show everything in imperial, temperature in C
+    OSD_UNIT_GA,            // General Aviation: Knots, Nautical Miles, Feet, Degrees C
 
     OSD_UNIT_MAX = OSD_UNIT_GA,
 } osd_unit_e;
@@ -291,11 +330,6 @@ typedef enum {
     OSD_STATS_ENERGY_UNIT_MAH,
     OSD_STATS_ENERGY_UNIT_WH,
 } osd_stats_energy_unit_e;
-
-typedef enum {
-    OSD_STATS_MIN_VOLTAGE_UNIT_BATTERY,
-    OSD_STATS_MIN_VOLTAGE_UNIT_CELL,
-} osd_stats_min_voltage_unit_e;
 
 typedef enum {
     OSD_CROSSHAIRS_STYLE_DEFAULT,
@@ -343,111 +377,129 @@ PG_DECLARE(osdLayoutsConfig_t, osdLayoutsConfig);
 
 typedef struct osdConfig_s {
     // Alarms
-    uint8_t rssi_alarm; // rssi %
-    uint16_t time_alarm; // fly minutes
-    uint16_t alt_alarm; // positive altitude in m
-    uint16_t dist_alarm; // home distance in m
-    uint16_t neg_alt_alarm; // abs(negative altitude) in m
-    uint8_t current_alarm; // current consumption in A
-    int16_t imu_temp_alarm_min;
-    int16_t imu_temp_alarm_max;
-    int16_t esc_temp_alarm_min;
-    int16_t esc_temp_alarm_max;
-    float gforce_alarm;
-    float gforce_axis_alarm_min;
-    float gforce_axis_alarm_max;
-#ifdef USE_SERIALRX_CRSF
-    int8_t snr_alarm; //CRSF SNR alarm in dB
-    int8_t link_quality_alarm;
-    int16_t rssi_dbm_alarm; // in dBm
-    int16_t rssi_dbm_max;  // Perfect RSSI. Set to High end of curve. RSSI at 100%
-    int16_t rssi_dbm_min;   // Worst RSSI. Set to low end of curve or RX sensitivity level. RSSI at 0%
+    uint8_t         rssi_alarm;                         // rssi %
+    uint16_t        time_alarm;                         // fly minutes
+    uint16_t        alt_alarm;                          // positive altitude in m
+    uint16_t        dist_alarm;                         // home distance in m
+    uint16_t        neg_alt_alarm;                      // abs(negative altitude) in m
+    uint8_t         current_alarm;                      // current consumption in A
+    int16_t         imu_temp_alarm_min;
+    int16_t         imu_temp_alarm_max;
+    int16_t         esc_temp_alarm_min;
+    int16_t         esc_temp_alarm_max;
+    float           gforce_alarm;
+    float           gforce_axis_alarm_min;
+    float           gforce_axis_alarm_max;
+#if defined(USE_SERIALRX_CRSF) || defined(USE_RX_MSP)
+    int8_t          snr_alarm;                          //CRSF SNR alarm in dB
+    int8_t          link_quality_alarm;
+    int16_t         rssi_dbm_alarm;                     // in dBm
+    int16_t         rssi_dbm_max;                       // Perfect RSSI. Set to High end of curve. RSSI at 100%
+    int16_t         rssi_dbm_min;                       // Worst RSSI. Set to low end of curve or RX sensitivity level. RSSI at 0%
 #endif
 #ifdef USE_BARO
-    int16_t baro_temp_alarm_min;
-    int16_t baro_temp_alarm_max;
+    int16_t         baro_temp_alarm_min;
+    int16_t         baro_temp_alarm_max;
 #endif
 #ifdef USE_TEMPERATURE_SENSOR
     osd_alignment_e temp_label_align;
 #endif
 #ifdef USE_PITOT
-    float airspeed_alarm_min;
-    float airspeed_alarm_max;
+    float           airspeed_alarm_min;
+    float           airspeed_alarm_max;
 #endif
 
-    videoSystem_e video_system;
-    uint8_t row_shiftdown;
-    int16_t msp_displayport_fullframe_interval;
+    videoSystem_e   video_system;
+    uint8_t         row_shiftdown;
+    int16_t         msp_displayport_fullframe_interval;
 
     // Preferences
-    uint8_t main_voltage_decimals;
-    uint8_t ahi_reverse_roll;
-    uint8_t ahi_max_pitch;
-    uint8_t crosshairs_style; // from osd_crosshairs_style_e
-    int8_t horizon_offset;
-    int8_t camera_uptilt;
-    bool ahi_camera_uptilt_comp;
-    uint8_t camera_fov_h;
-    uint8_t camera_fov_v;
-    uint8_t hud_margin_h;
-    uint8_t hud_margin_v;
-    bool hud_homing;
-    bool hud_homepoint;
-    uint8_t hud_radar_disp;
-    uint16_t hud_radar_range_min;
-    uint16_t hud_radar_range_max;
-    uint8_t hud_radar_alt_difference_display_time;
-    uint8_t hud_radar_distance_display_time;
-    uint8_t hud_wp_disp;
+    uint8_t         main_voltage_decimals;
+    uint8_t         decimals_altitude;
+    uint8_t         decimals_distance;
+    uint8_t         ahi_reverse_roll;
+    uint8_t         ahi_max_pitch;
+    uint8_t         crosshairs_style;                   // from osd_crosshairs_style_e
+    int8_t          horizon_offset;
+    int8_t          camera_uptilt;
+    bool            ahi_camera_uptilt_comp;
+    uint8_t         camera_fov_h;
+    uint8_t         camera_fov_v;
+    uint8_t         hud_margin_h;
+    uint8_t         hud_margin_v;
+    bool            hud_homing;
+    bool            hud_homepoint;
+    uint8_t         hud_radar_disp;
+    uint16_t        hud_radar_range_min;
+    uint16_t        hud_radar_range_max;
+    uint8_t         hud_radar_alt_difference_display_time;
+    uint8_t         hud_radar_distance_display_time;
+    uint8_t         hud_wp_disp;
 
-    uint8_t left_sidebar_scroll; // from osd_sidebar_scroll_e
-    uint8_t right_sidebar_scroll; // from osd_sidebar_scroll_e
-    uint8_t sidebar_scroll_arrows;
+    uint8_t         left_sidebar_scroll;                // from osd_sidebar_scroll_e
+    uint8_t         right_sidebar_scroll;               // from osd_sidebar_scroll_e
+    uint8_t         sidebar_scroll_arrows;
 
-    uint8_t units; // from osd_unit_e
-    uint8_t stats_energy_unit; // from osd_stats_energy_unit_e
-    uint8_t stats_min_voltage_unit; // from osd_stats_min_voltage_unit_e
-    uint8_t stats_page_auto_swap_time;   // stats page auto swap interval time (seconds)
+    uint8_t         units;                              // from osd_unit_e
+    uint8_t         stats_energy_unit;                  // from osd_stats_energy_unit_e
+    uint8_t         stats_page_auto_swap_time;          // stats page auto swap interval time (seconds)
+    bool            stats_show_metric_efficiency;       // If true, show metric efficiency as well as for the selected units
 
 #ifdef USE_WIND_ESTIMATOR
-    bool    estimations_wind_compensation; // use wind compensation for estimated remaining flight/distance
+    bool            estimations_wind_compensation;      // use wind compensation for estimated remaining flight/distance
+    bool            estimations_wind_mps;               // wind speed estimation in m/s
 #endif
-
-    uint8_t coordinate_digits;
-
-    bool    osd_failsafe_switch_layout;
-    uint8_t plus_code_digits; // Number of digits to use in OSD_PLUS_CODE
-    uint8_t plus_code_short;
-    uint8_t ahi_style;
-    uint8_t force_grid;                         // Force a pixel based OSD to use grid mode.
-    uint8_t ahi_bordered;                       // Only used by the AHI widget
-    uint8_t ahi_width;                          // In pixels, only used by the AHI widget
-    uint8_t ahi_height;                         // In pixels, only used by the AHI widget
-    int8_t  ahi_vertical_offset;                // Offset from center in pixels. Positive moves the AHI down. Widget only.
-    int8_t  sidebar_horizontal_offset;          // Horizontal offset from default position. Units are grid slots for grid OSDs, pixels for pixel based OSDs. Positive values move sidebars closer to the edges.
-    uint8_t left_sidebar_scroll_step;           // How many units each sidebar step represents. 0 means the default value for the scroll type.
-    uint8_t right_sidebar_scroll_step;          // Same as left_sidebar_scroll_step, but for the right sidebar.
-    bool    osd_home_position_arm_screen;
-    uint8_t pan_servo_index;                    // Index of the pan servo used for home direction offset
-    int8_t  pan_servo_pwm2centideg;             // Centidegrees of servo rotation per us pwm
-    uint8_t pan_servo_offcentre_warning;        // Degrees around the centre, that is assumed camera is wanted to be facing forwards, but isn't centred
-    bool    pan_servo_indicator_show_degrees;   // Show the degrees of offset for the pan servo
-    uint8_t crsf_lq_format;
-    uint8_t sidebar_height;                     // sidebar height in rows, 0 turns off sidebars leaving only level indicator arrows
-    uint8_t telemetry; 				            // use telemetry on displayed pixel line 0
-    uint8_t esc_rpm_precision;                  // Number of characters used for the RPM numbers.
-    uint16_t system_msg_display_time;           // system message display time for multiple messages (ms)
-    uint8_t mAh_used_precision;                 // Number of numbers used for mAh drawn. Plently of packs now are > 9999 mAh
-    uint8_t ahi_pitch_interval;                 // redraws AHI at set pitch interval (Not pixel OSD)
-    char    osd_switch_indicator0_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1];      // Name to use for switch indicator 0.
-    uint8_t osd_switch_indicator0_channel;     // RC Channel to use for switch indicator 0.
-    char    osd_switch_indicator1_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1];      // Name to use for switch indicator 1.
-    uint8_t osd_switch_indicator1_channel;     // RC Channel to use for switch indicator 1.
-    char    osd_switch_indicator2_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1];      // Name to use for switch indicator 2.
-    uint8_t osd_switch_indicator2_channel;     // RC Channel to use for switch indicator 2.
-    char    osd_switch_indicator3_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1];      // Name to use for switch indicator 3.
-    uint8_t osd_switch_indicator3_channel;     // RC Channel to use for switch indicator 3.
-    bool    osd_switch_indicators_align_left;   // Align switch indicator name to left of the switch.
+    uint8_t         coordinate_digits;
+    bool            osd_failsafe_switch_layout;
+    uint8_t         plus_code_digits;                   // Number of digits to use in OSD_PLUS_CODE
+    uint8_t         plus_code_short;
+    uint8_t         ahi_style;
+    uint8_t         force_grid;                         // Force a pixel based OSD to use grid mode.
+    uint8_t         ahi_bordered;                       // Only used by the AHI widget
+    uint8_t         ahi_width;                          // In pixels, only used by the AHI widget
+    uint8_t         ahi_height;                         // In pixels, only used by the AHI widget
+    int8_t          ahi_vertical_offset;                // Offset from center in pixels. Positive moves the AHI down. Widget only.
+    int8_t          sidebar_horizontal_offset;          // Horizontal offset from default position. Units are grid slots for grid OSDs, pixels for pixel based OSDs. Positive values move sidebars closer to the edges.
+    uint8_t         left_sidebar_scroll_step;           // How many units each sidebar step represents. 0 means the default value for the scroll type.
+    uint8_t         right_sidebar_scroll_step;          // Same as left_sidebar_scroll_step, but for the right sidebar.
+    bool            osd_home_position_arm_screen;
+    uint8_t         pan_servo_index;                    // Index of the pan servo used for home direction offset
+    int8_t          pan_servo_pwm2centideg;             // Centidegrees of servo rotation per us pwm
+    uint8_t         pan_servo_offcentre_warning;        // Degrees around the centre, that is assumed camera is wanted to be facing forwards, but isn't centred
+    bool            pan_servo_indicator_show_degrees;   // Show the degrees of offset for the pan servo
+    uint8_t         crsf_lq_format;
+    uint8_t         sidebar_height;                     // sidebar height in rows, 0 turns off sidebars leaving only level indicator arrows
+    uint8_t         telemetry;                          // use telemetry on displayed pixel line 0
+    uint8_t         esc_rpm_precision;                  // Number of characters used for the RPM numbers.
+    uint16_t        system_msg_display_time;            // system message display time for multiple messages (ms)
+    uint8_t         mAh_precision;                      // Number of numbers used for mAh drawn. Plently of packs now are > 9999 mAh
+    uint8_t         ahi_pitch_interval;                 // redraws AHI at set pitch interval (Not pixel OSD)
+    char            osd_switch_indicator0_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1]; // Name to use for switch indicator 0.
+    uint8_t         osd_switch_indicator0_channel;      // RC Channel to use for switch indicator 0.
+    char            osd_switch_indicator1_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1]; // Name to use for switch indicator 1.
+    uint8_t         osd_switch_indicator1_channel;      // RC Channel to use for switch indicator 1.
+    char            osd_switch_indicator2_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1]; // Name to use for switch indicator 2.
+    uint8_t         osd_switch_indicator2_channel;      // RC Channel to use for switch indicator 2.
+    char            osd_switch_indicator3_name[OSD_SWITCH_INDICATOR_NAME_LENGTH + 1]; // Name to use for switch indicator 3.
+    uint8_t         osd_switch_indicator3_channel;      // RC Channel to use for switch indicator 3.
+    bool            osd_switch_indicators_align_left;   // Align switch indicator name to left of the switch.
+    bool            use_pilot_logo;                     // If enabled, the pilot logo (last 40 characters of page 2 font) will be used with the INAV logo.
+    uint8_t         inav_to_pilot_logo_spacing;         // The space between the INAV and pilot logos, if pilot logo is used. This number may be adjusted so that it fits the odd/even col width.
+    uint16_t        arm_screen_display_time;            // Length of time the arm screen is displayed
+#ifndef DISABLE_MSP_DJI_COMPAT
+    bool            highlight_djis_missing_characters;  // If enabled, show question marks where there is no character in DJI's font to represent an OSD element symbol
+#endif
+    bool            enable_broken_o4_workaround;        // If enabled, override STATUS/STATUS_EX messages to work around DJI's broken O4 air unit MSP DisplayPort implementation
+#ifdef USE_ADSB
+    uint16_t adsb_distance_warning;                     // in metres
+    uint16_t adsb_distance_alert;                       // in metres
+    uint16_t adsb_ignore_plane_above_me_limit;          // in metres
+#endif
+    uint8_t  radar_peers_display_time;                  // in seconds
+#ifdef USE_GEOZONE
+    uint8_t geozoneDistanceWarning;                     // Distance to fence or action
+    bool geozoneDistanceType;                            // Shows a countdown timer or distance to fence/action
+#endif
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);
@@ -483,7 +535,7 @@ void osdStartedSaveProcess(void);
 void osdShowEEPROMSavedNotification(void);
 
 void osdCrosshairPosition(uint8_t *x, uint8_t *y);
-bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int maxDecimals, int maxScaledDecimals, int length);
+bool osdFormatCentiNumber(char *buff, int32_t centivalue, uint32_t scale, int maxDecimals, int maxScaledDecimals, int length, bool leadingZeros);
 void osdFormatAltitudeSymbol(char *buff, int32_t alt);
 void osdFormatVelocityStr(char* buff, int32_t vel, bool _3D, bool _max);
 // Returns a heading angle in degrees normalized to [0, 360).

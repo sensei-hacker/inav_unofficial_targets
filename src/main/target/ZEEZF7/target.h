@@ -108,7 +108,8 @@
 #define USE_BARO_DPS310
 
 #define USE_MAG
-#define USE_MAG_QMC5883
+#define USE_MAG_ALL
+
 #endif
 
 #if defined ZEEZF7V2 ||  defined ZEEZF7V3
@@ -131,13 +132,7 @@
 
 #define USE_MAG
 #define MAG_I2C_BUS             BUS_I2C3
-#define USE_MAG_HMC5883
-#define USE_MAG_QMC5883
-#define USE_MAG_IST8310
-#define USE_MAG_IST8308
-#define USE_MAG_MAG3110
-#define USE_MAG_LIS3MDL
-#define USE_MAG_AK8975
+#define USE_MAG_ALL
 #endif
 
 // *************** Flash ****************************

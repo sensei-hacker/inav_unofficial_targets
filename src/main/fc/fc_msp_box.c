@@ -43,6 +43,9 @@
 
 #include "telemetry/telemetry.h"
 
+#include "drivers/gimbal_common.h"
+#include "drivers/headtracker_common.h"
+
 #define BOX_SUFFIX ';'
 #define BOX_SUFFIX_LEN 1
 
@@ -76,7 +79,6 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { .boxId = BOXTURNASSIST,       .boxName = "TURN ASSIST",       .permanentId = 35 },
     { .boxId = BOXNAVLAUNCH,        .boxName = "NAV LAUNCH",        .permanentId = 36 },
     { .boxId = BOXAUTOTRIM,         .boxName = "SERVO AUTOTRIM",    .permanentId = 37 },
-    { .boxId = BOXKILLSWITCH,       .boxName = "KILLSWITCH",        .permanentId = 38 },
     { .boxId = BOXCAMERA1,          .boxName = "CAMERA CONTROL 1",  .permanentId = 39 },
     { .boxId = BOXCAMERA2,          .boxName = "CAMERA CONTROL 2",  .permanentId = 40 },
     { .boxId = BOXCAMERA3,          .boxName = "CAMERA CONTROL 3",  .permanentId = 41 },
@@ -102,6 +104,11 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT + 1] = {
     { .boxId = BOXMULTIFUNCTION,    .boxName = "MULTI FUNCTION",    .permanentId = 61 },
     { .boxId = BOXMIXERPROFILE,     .boxName = "MIXER PROFILE 2",   .permanentId = 62 },
     { .boxId = BOXMIXERTRANSITION,  .boxName = "MIXER TRANSITION",  .permanentId = 63 },
+    { .boxId = BOXANGLEHOLD,        .boxName = "ANGLE HOLD",        .permanentId = 64 },
+    { .boxId = BOXGIMBALTLOCK,      .boxName = "GIMBAL LEVEL TILT", .permanentId = 65 },
+    { .boxId = BOXGIMBALRLOCK,      .boxName = "GIMBAL LEVEL ROLL", .permanentId = 66 },
+    { .boxId = BOXGIMBALCENTER,     .boxName = "GIMBAL CENTER",     .permanentId = 67 },
+    { .boxId = BOXGIMBALHTRK,       .boxName = "GIMBAL HEADTRACKER", .permanentId = 68 },
     { .boxId = CHECKBOX_ITEM_COUNT, .boxName = NULL,                .permanentId = 0xFF }
 };
 
@@ -202,7 +209,7 @@ void initActiveBoxIds(void)
     //Camstab mode is enabled always
     ADD_ACTIVE_BOX(BOXCAMSTAB);
 
-    if (STATE(MULTIROTOR)) {
+    if (STATE(MULTIROTOR) || platformTypeConfigured(PLATFORM_MULTIROTOR) || platformTypeConfigured(PLATFORM_TRICOPTER)) {
         if ((sensors(SENSOR_ACC) || sensors(SENSOR_MAG))) {
             ADD_ACTIVE_BOX(BOXHEADFREE);
             ADD_ACTIVE_BOX(BOXHEADADJ);
@@ -213,15 +220,12 @@ void initActiveBoxIds(void)
         ADD_ACTIVE_BOX(BOXFPVANGLEMIX);
     }
 
-    bool navReadyAltControl = sensors(SENSOR_BARO);
+    bool navReadyAltControl = getHwBarometerStatus() != HW_SENSOR_NONE;
 #ifdef USE_GPS
-    navReadyAltControl = navReadyAltControl || (feature(FEATURE_GPS) && (STATE(AIRPLANE) || positionEstimationConfig()->use_gps_no_baro));
+    navReadyAltControl = navReadyAltControl || feature(FEATURE_GPS);
 
     const bool navFlowDeadReckoning = sensors(SENSOR_OPFLOW) && sensors(SENSOR_ACC) && positionEstimationConfig()->allow_dead_reckoning;
     bool navReadyPosControl = sensors(SENSOR_ACC) && feature(FEATURE_GPS);
-    if (STATE(MULTIROTOR)) {
-        navReadyPosControl = navReadyPosControl && getHwCompassStatus() != HW_SENSOR_NONE;
-    }
 
     if (STATE(ALTITUDE_CONTROL) && navReadyAltControl && (navReadyPosControl || navFlowDeadReckoning)) {
         ADD_ACTIVE_BOX(BOXNAVPOSHOLD);
@@ -244,13 +248,13 @@ void initActiveBoxIds(void)
 #endif
         }
 
-        if (STATE(AIRPLANE)) {
+        if (STATE(AIRPLANE) || platformTypeConfigured(PLATFORM_AIRPLANE)) {
             ADD_ACTIVE_BOX(BOXSOARING);
         }
     }
 
 #ifdef USE_MR_BRAKING_MODE
-    if (mixerConfig()->platformType == PLATFORM_MULTIROTOR) {
+    if (mixerConfig()->platformType == PLATFORM_MULTIROTOR || platformTypeConfigured(PLATFORM_MULTIROTOR)) {
         ADD_ACTIVE_BOX(BOXBRAKING);
     }
 #endif
@@ -259,11 +263,12 @@ void initActiveBoxIds(void)
         ADD_ACTIVE_BOX(BOXNAVALTHOLD);
     }
 
-    if (STATE(AIRPLANE) || STATE(ROVER) || STATE(BOAT)) {
+    if (STATE(AIRPLANE) || STATE(ROVER) || STATE(BOAT) ||
+        platformTypeConfigured(PLATFORM_AIRPLANE) || platformTypeConfigured(PLATFORM_ROVER) || platformTypeConfigured(PLATFORM_BOAT)) {
         ADD_ACTIVE_BOX(BOXMANUAL);
     }
 
-    if (STATE(AIRPLANE)) {
+    if (STATE(AIRPLANE) || platformTypeConfigured(PLATFORM_AIRPLANE)) {
         if (!feature(FEATURE_FW_LAUNCH)) {
            ADD_ACTIVE_BOX(BOXNAVLAUNCH);
         }
@@ -277,6 +282,9 @@ void initActiveBoxIds(void)
 #endif
         if (sensors(SENSOR_BARO)) {
             ADD_ACTIVE_BOX(BOXAUTOLEVEL);
+        }
+        if (sensors(SENSOR_ACC)) {
+            ADD_ACTIVE_BOX(BOXANGLEHOLD);
         }
     }
 
@@ -315,10 +323,9 @@ void initActiveBoxIds(void)
     }
 #endif
 
-    ADD_ACTIVE_BOX(BOXKILLSWITCH);
     ADD_ACTIVE_BOX(BOXFAILSAFE);
 
-#ifdef USE_RCDEVICE
+#if defined(USE_RCDEVICE) || defined(USE_MSP_DISPLAYPORT)
     ADD_ACTIVE_BOX(BOXCAMERA1);
     ADD_ACTIVE_BOX(BOXCAMERA2);
     ADD_ACTIVE_BOX(BOXCAMERA3);
@@ -357,6 +364,19 @@ void initActiveBoxIds(void)
 #if (MAX_MIXER_PROFILE_COUNT > 1)
     ADD_ACTIVE_BOX(BOXMIXERPROFILE);
     ADD_ACTIVE_BOX(BOXMIXERTRANSITION);
+#endif
+
+#ifdef USE_SERIAL_GIMBAL
+    if (gimbalCommonIsEnabled()) {
+        ADD_ACTIVE_BOX(BOXGIMBALTLOCK);
+        ADD_ACTIVE_BOX(BOXGIMBALRLOCK);
+        ADD_ACTIVE_BOX(BOXGIMBALCENTER);
+    }
+#endif
+#ifdef USE_HEADTRACKER
+    if(headTrackerConfig()->devType != HEADTRACKER_NONE) {
+        ADD_ACTIVE_BOX(BOXGIMBALHTRK);
+    }
 #endif
 }
 
@@ -400,7 +420,6 @@ void packBoxModeFlags(boxBitmask_t * mspBoxModeFlags)
     CHECK_ACTIVE_BOX(IS_ENABLED(FLIGHT_MODE(NAV_LAUNCH_MODE)),          BOXNAVLAUNCH);
     CHECK_ACTIVE_BOX(IS_ENABLED(FLIGHT_MODE(AUTO_TUNE)),                BOXAUTOTUNE);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXAUTOTRIM)),        BOXAUTOTRIM);
-    CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXKILLSWITCH)),      BOXKILLSWITCH);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXHOMERESET)),       BOXHOMERESET);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMERA1)),         BOXCAMERA1);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXCAMERA2)),         BOXCAMERA2);
@@ -431,6 +450,22 @@ void packBoxModeFlags(boxBitmask_t * mspBoxModeFlags)
     CHECK_ACTIVE_BOX(IS_ENABLED(currentMixerProfileIndex),              BOXMIXERPROFILE);
     CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXMIXERTRANSITION)), BOXMIXERTRANSITION);
 #endif
+    CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXANGLEHOLD)),       BOXANGLEHOLD);
+
+#ifdef USE_SERIAL_GIMBAL
+    if(IS_RC_MODE_ACTIVE(BOXGIMBALCENTER)) {
+        CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGIMBALCENTER)), BOXGIMBALCENTER);
+#ifdef USE_HEADTRACKER
+    } else if (headTrackerCommonIsReady(headTrackerCommonDevice()) && IS_RC_MODE_ACTIVE(BOXGIMBALHTRK)) {
+        CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGIMBALHTRK)), BOXGIMBALHTRK);
+#endif
+    } else {
+        CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGIMBALTLOCK) && !IS_RC_MODE_ACTIVE(BOXGIMBALCENTER)),     BOXGIMBALTLOCK);
+        CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGIMBALRLOCK) && !IS_RC_MODE_ACTIVE(BOXGIMBALCENTER)),     BOXGIMBALRLOCK);
+        CHECK_ACTIVE_BOX(IS_ENABLED(IS_RC_MODE_ACTIVE(BOXGIMBALHTRK) && !IS_RC_MODE_ACTIVE(BOXGIMBALCENTER)),     BOXGIMBALRLOCK);
+    }
+#endif
+
     memset(mspBoxModeFlags, 0, sizeof(boxBitmask_t));
     for (uint32_t i = 0; i < activeBoxIdCount; i++) {
         if (activeBoxes[activeBoxIds[i]]) {
