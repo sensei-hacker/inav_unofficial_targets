@@ -76,9 +76,9 @@
 #define SPI1_MOSI_PIN                PA7
 
 #define USE_FLASHFS
-#define USE_FLASH_W25Q128FV
-#define W25Q128FV_CS_PIN                SPI1_NSS_PIN
-#define W25Q128FV_SPI_BUS               BUS_SPI1
+#define USE_FLASH_M25P16
+#define M25P16_CS_PIN                SPI1_NSS_PIN
+#define M25P16_SPI_BUS               BUS_SPI1
 #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
 
 // *************** OSD *****************************
