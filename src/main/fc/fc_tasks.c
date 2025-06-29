@@ -103,14 +103,20 @@
 
 void taskHandleSerial(timeUs_t currentTimeUs)
 {
+    static unsigned int loopInterval;
     UNUSED(currentTimeUs);
     // in cli mode, all serial stuff goes to here. enter cli mode by sending #
     if (cliMode) {
         cliProcess();
     }
 
-    // Allow MSP processing even if in CLI mode
-    mspSerialProcess(ARMING_FLAG(ARMED) ? MSP_SKIP_NON_MSP_DATA : MSP_EVALUATE_NON_MSP_DATA, mspFcProcessCommand);
+    // Process serial 8X as often when disarmed, for Configurator
+    if (ARMING_FLAG(ARMED) && ((loopInterval++ & 7) == 0) ) {
+        mspSerialProcess(MSP_SKIP_NON_MSP_DATA, mspFcProcessCommand);
+    } else {
+        // Allow MSP processing even if in CLI mode
+        mspSerialProcess(MSP_EVALUATE_NON_MSP_DATA, mspFcProcessCommand);
+    }
 
 #if defined(USE_DJI_HD_OSD)
     // DJI OSD uses a special flavour of MSP (subset of Betaflight 4.1.1 MSP) - process as part of serial task
@@ -488,7 +494,7 @@ cfTask_t cfTasks[TASK_COUNT] = {
     [TASK_SERIAL] = {
         .taskName = "SERIAL",
         .taskFunc = taskHandleSerial,
-        .desiredPeriod = TASK_PERIOD_HZ(100),     // 100 Hz should be enough to flush up to 115 bytes @ 115200 baud
+        .desiredPeriod = TASK_PERIOD_US(1250),     // But only runs at 100 Hz when armed
         .staticPriority = TASK_PRIORITY_LOW,
     },
 
