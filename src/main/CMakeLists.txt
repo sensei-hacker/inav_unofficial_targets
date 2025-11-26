@@ -206,6 +206,8 @@ main_sources(COMMON_SRC
 
     drivers/opflow/opflow_fake.c
     drivers/opflow/opflow_fake.h
+    drivers/opflow/opflow_pmw3901.c
+    drivers/opflow/opflow_pmw3901.h
     drivers/opflow/opflow_virtual.c
     drivers/opflow/opflow_virtual.h
 

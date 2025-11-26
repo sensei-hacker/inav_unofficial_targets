@@ -11,7 +11,7 @@ tables:
     values: ["NONE", "AUTO", "HMC5883", "AK8975", "MAG3110", "AK8963", "IST8310", "QMC5883", "QMC5883P", "MPU9250", "IST8308", "LIS3MDL", "MSP", "RM3100", "VCM5883", "MLX90393", "FAKE"]
     enum: magSensor_e
   - name: opflow_hardware
-    values: ["NONE", "CXOF", "MSP", "FAKE"]
+    values: ["NONE", "CXOF", "MSP", "FAKE", "PMW3901"]
     enum: opticalFlowSensor_e
   - name: baro_hardware
     values: ["NONE", "AUTO", "BMP085", "MS5611", "BMP280", "MS5607", "LPS25H", "SPL06", "BMP388", "DPS310", "B2SMPB", "MSP", "FAKE"]

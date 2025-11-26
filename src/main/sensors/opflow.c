@@ -47,6 +47,7 @@
 #include "drivers/opflow/opflow.h"
 #include "drivers/opflow/opflow_fake.h"
 #include "drivers/opflow/opflow_virtual.h"
+#include "drivers/opflow/opflow_pmw3901.h"
 
 #include "fc/config.h"
 #include "fc/runtime_config.h"
@@ -110,6 +111,14 @@ static bool opflowDetect(opflowDev_t * dev, uint8_t opflowHardwareToUse)
 #if defined(USE_OPFLOW_MSP)
             if (virtualOpflowDetect(dev, &opflowMSPVtable)) {
                 opflowHardware = OPFLOW_MSP;
+            }
+#endif
+            break;
+
+        case OPFLOW_PMW3901:
+#if defined(USE_OPFLOW_PMW3901)
+            if (virtualOpflowDetect(dev, &opflowPmw3901Vtable)) {
+                opflowHardware = OPFLOW_PMW3901;
             }
 #endif
             break;
