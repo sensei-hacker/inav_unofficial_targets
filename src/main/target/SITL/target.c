@@ -51,6 +51,7 @@
 #include "drivers/timer.h"
 #include "drivers/serial.h"
 #include "drivers/serial_tcp.h"
+#include "drivers/serial_websocket.h"
 #include "config/config_streamer.h"
 #include "build/version.h"
 

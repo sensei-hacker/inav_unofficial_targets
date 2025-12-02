@@ -15,6 +15,8 @@ main_sources(SITL_SRC
     config/config_streamer_file.c
     drivers/serial_tcp.c
     drivers/serial_tcp.h
+    drivers/serial_websocket.c
+    drivers/serial_websocket.h
     target/SITL/sim/realFlight.c
     target/SITL/sim/realFlight.h
     target/SITL/sim/simHelper.c
@@ -64,9 +66,10 @@ if(NOT MACOSX)
         -Wno-error=maybe-uninitialized
         -fsingle-precision-constant
     )
-    if (CMAKE_COMPILER_IS_GNUCC AND NOT CMAKE_C_COMPILER_VERSION VERSION_LESS 12.0)
-        set(SITL_LINK_OPTIONS ${SITL_LINK_OPTIONS} "-Wl,--no-warn-rwx-segments")
-    endif()
+    # Temporarily disabled - ld version may not support this flag
+    # if (CMAKE_COMPILER_IS_GNUCC AND NOT CMAKE_C_COMPILER_VERSION VERSION_LESS 12.0)
+    #     set(SITL_LINK_OPTIONS ${SITL_LINK_OPTIONS} "-Wl,--no-warn-rwx-segments")
+    # endif()
 else()
     set(SITL_COMPILE_OPTIONS ${SITL_COMPILE_OPTIONS}
     )
