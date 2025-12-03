@@ -13,19 +13,33 @@ main_sources(SITL_COMMON_SRC_EXCLUDES
 
 main_sources(SITL_SRC
     config/config_streamer_file.c
-    drivers/serial_tcp.c
-    drivers/serial_tcp.h
     drivers/serial_websocket.c
     drivers/serial_websocket.h
-    target/SITL/sim/realFlight.c
-    target/SITL/sim/realFlight.h
-    target/SITL/sim/simHelper.c
-    target/SITL/sim/simHelper.h
-    target/SITL/sim/simple_soap_client.c
-    target/SITL/sim/simple_soap_client.h
-    target/SITL/sim/xplane.c
-    target/SITL/sim/xplane.h
 )
+
+# Only include TCP server and simulator code for non-WASM builds
+if(NOT ${TOOLCHAIN} STREQUAL "wasm")
+    main_sources(SITL_SRC
+        drivers/serial_tcp.c
+        drivers/serial_tcp.h
+        target/SITL/sim/realFlight.c
+        target/SITL/sim/realFlight.h
+        target/SITL/sim/simHelper.c
+        target/SITL/sim/simHelper.h
+        target/SITL/sim/simple_soap_client.c
+        target/SITL/sim/simple_soap_client.h
+        target/SITL/sim/xplane.c
+        target/SITL/sim/xplane.h
+    )
+else()
+    # WASM-specific: Manual PG registry (linker script not supported)
+    main_sources(SITL_SRC
+        target/SITL/wasm_pg_registry.c
+        target/SITL/wasm_pg_runtime.c
+        target/SITL/wasm_stubs.c
+        target/SITL/wasm_msp_bridge.c
+    )
+endif()
 
 
 if(CMAKE_HOST_APPLE)
@@ -79,12 +93,43 @@ set(SITL_DEFINITIONS
     SITL_BUILD
 )
 
+# WebAssembly-specific settings
+if(${TOOLCHAIN} STREQUAL "wasm")
+    # Disable simulator for WASM builds
+    list(APPEND SITL_DEFINITIONS SKIP_SIMULATOR=1)
+
+    # Emscripten-specific compile options
+    set(SITL_COMPILE_OPTIONS ${SITL_COMPILE_OPTIONS}
+        # Phase 5 MVP: Disable pthreads
+        # -pthread
+        -funsigned-char
+    )
+
+    # Emscripten linker options
+    set(SITL_LINK_OPTIONS
+        # Phase 5 MVP: Disable pthreads to avoid COOP/COEP header requirements
+        # -pthread
+        # -sUSE_PTHREADS=1
+        # -sPTHREAD_POOL_SIZE=8
+        -sALLOW_MEMORY_GROWTH=1
+        -sWEBSOCKET_URL="ws://localhost:5771"
+        -sFORCE_FILESYSTEM=1
+        -sEXPORTED_FUNCTIONS=_main,_wasm_msp_process_command,_wasm_msp_get_api_version,_wasm_msp_get_fc_variant,_malloc,_free
+        -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,lengthBytesUTF8,getValue,setValue
+        -lidbfs.js
+    )
+
+    # Override libraries for WASM (no system libs needed)
+    set(SITL_LINK_LIBRARIS "")
+endif()
+
 function (target_sitl name)
     if(CMAKE_VERSION VERSION_GREATER 3.22)
         set(CMAKE_C_STANDARD 17)
     endif()
 
-    if(NOT host STREQUAL TOOLCHAIN)
+    # Accept both host and wasm toolchains for SITL builds
+    if(NOT ${TOOLCHAIN} STREQUAL "host" AND NOT ${TOOLCHAIN} STREQUAL "wasm")
         return()
     endif()
 
@@ -129,13 +174,16 @@ function (target_sitl name)
     target_link_libraries(${exe_target} PRIVATE ${SITL_LINK_LIBRARIS})
     target_link_options(${exe_target} PRIVATE ${SITL_LINK_OPTIONS})
 
-    set(script_path ${MAIN_SRC_DIR}/target/link/sitl.ld)
-    if(NOT EXISTS ${script_path})
-        message(FATAL_ERROR "linker script ${script_path} doesn't exist")
-    endif()
-    set_target_properties(${exe_target} PROPERTIES LINK_DEPENDS ${script_path})
-    if(NOT MACOSX)
-        target_link_options(${exe_target} PRIVATE -T${script_path})
+    # Only use linker script for non-WASM builds
+    if(NOT ${TOOLCHAIN} STREQUAL "wasm")
+        set(script_path ${MAIN_SRC_DIR}/target/link/sitl.ld)
+        if(NOT EXISTS ${script_path})
+            message(FATAL_ERROR "linker script ${script_path} doesn't exist")
+        endif()
+        set_target_properties(${exe_target} PROPERTIES LINK_DEPENDS ${script_path})
+        if(NOT MACOSX)
+            target_link_options(${exe_target} PRIVATE -T${script_path})
+        endif()
     endif()
 
     if(${CYGWIN})
