@@ -388,7 +388,11 @@ bool impl_timerPWMConfigChannelDMA(TCH_t * tch, void * dmaBuffer, uint8_t dmaBuf
     init.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
     init.NbData = dmaBufferElementCount;
     init.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
+#ifdef TEST_CIRCULAR_DSHOT
+    init.Mode = LL_DMA_MODE_CIRCULAR;  // TEST: Circular mode for DMA flash erase test
+#else
     init.Mode = LL_DMA_MODE_NORMAL;
+#endif
     init.Priority = LL_DMA_PRIORITY_HIGH;
     init.FIFOMode = LL_DMA_FIFOMODE_ENABLE;
     init.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_FULL;

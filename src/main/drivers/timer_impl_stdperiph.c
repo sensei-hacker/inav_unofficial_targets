@@ -322,7 +322,11 @@ bool impl_timerPWMConfigChannelDMA(TCH_t * tch, void * dmaBuffer, uint8_t dmaBuf
     DMA_InitStructure.DMA_BufferSize = dmaBufferElementCount;
     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
     DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+#ifdef TEST_CIRCULAR_DSHOT
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;  // TEST: Circular mode for DMA flash erase test
+#else
     DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+#endif
 
     switch (dmaBufferElementSize) {
         case 1:
