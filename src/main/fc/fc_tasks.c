@@ -101,6 +101,11 @@
 #include "target/SITL/serial_proxy.h"
 #endif
 
+#ifdef TEST_CIRCULAR_DSHOT
+// Test function defined in test_dma_flash_erase.c
+void taskDmaFlashTest(timeUs_t currentTimeUs);
+#endif
+
 void taskHandleSerial(timeUs_t currentTimeUs)
 {
     UNUSED(currentTimeUs);
@@ -757,6 +762,15 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .taskFunc = geozoneUpdateTask,
         .desiredPeriod = TASK_PERIOD_HZ(5),
         .staticPriority = TASK_PRIORITY_MEDIUM,
+    },
+#endif
+
+#ifdef TEST_CIRCULAR_DSHOT
+    [TASK_DMA_FLASH_TEST] = {
+        .taskName = "DMA_FLASH_TEST",
+        .taskFunc = taskDmaFlashTest,
+        .desiredPeriod = TASK_PERIOD_HZ(100),        // 10ms = 100Hz (restarts DMA frequently)
+        .staticPriority = TASK_PRIORITY_LOW,
     },
 #endif
 

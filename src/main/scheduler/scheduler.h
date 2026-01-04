@@ -141,6 +141,10 @@ typedef enum {
     TASK_GEOZONE,
 #endif
 
+#ifdef TEST_CIRCULAR_DSHOT
+    TASK_DMA_FLASH_TEST,
+#endif
+
     /* Count of real tasks */
     TASK_COUNT,
 
