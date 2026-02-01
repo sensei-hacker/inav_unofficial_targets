@@ -38,6 +38,8 @@ else()
         target/SITL/wasm_pg_runtime.c
         target/SITL/wasm_stubs.c
         target/SITL/wasm_msp_bridge.c
+        target/SITL/serial_wasm.c
+        target/SITL/serial_wasm.h
     )
 endif()
 
@@ -114,7 +116,7 @@ if(${TOOLCHAIN} STREQUAL "wasm")
         -sALLOW_MEMORY_GROWTH=1
         -sWEBSOCKET_URL="ws://localhost:5771"
         -sFORCE_FILESYSTEM=1
-        -sEXPORTED_FUNCTIONS=_main,_wasm_msp_process_command,_wasm_msp_get_api_version,_wasm_msp_get_fc_variant,_malloc,_free
+        -sEXPORTED_FUNCTIONS=_main,_wasm_msp_process_command,_wasm_msp_get_api_version,_wasm_msp_get_fc_variant,_serialWriteByte,_serialReadByte,_serialAvailable,_malloc,_free
         -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,lengthBytesUTF8,getValue,setValue
         -lidbfs.js
     )
