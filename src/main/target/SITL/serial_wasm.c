@@ -26,6 +26,10 @@
  *   JavaScript → serialWriteByte() → RX ring buffer → MSP parser → MSP handler → TX ring buffer → serialReadByte() → JavaScript
  *
  * This is just a transport layer, exactly like UART, TCP, UDP, or BLE.
+ *
+ * Event Notification:
+ *   When firmware completes writing a response, serialEndWrite() notifies JavaScript
+ *   by calling Module.wasmSerialDataCallback() if set. This is like a hardware interrupt.
  */
 
 #ifdef __EMSCRIPTEN__
@@ -39,16 +43,28 @@
 #include "drivers/serial.h"
 #include "io/serial.h"
 
+// JavaScript callback notification (like a hardware interrupt)
+// Called when WASM has data ready to send to JavaScript
+// JavaScript should set: Module.wasmSerialDataCallback = function() { ... }
+EM_JS(void, notifySerialDataAvailable, (), {
+    if (Module.wasmSerialDataCallback) {
+        Module.wasmSerialDataCallback();
+    }
+});
+
 // Ring buffer sizes
 #define WASM_SERIAL_RX_BUFFER_SIZE 512
 #define WASM_SERIAL_TX_BUFFER_SIZE 2048
 
-// Ring buffers
-static volatile uint8_t wasmSerialRxBuffer[WASM_SERIAL_RX_BUFFER_SIZE];
-static volatile uint8_t wasmSerialTxBuffer[WASM_SERIAL_TX_BUFFER_SIZE];
+// Ring buffers (no volatile needed - single-threaded WASM)
+static uint8_t wasmSerialRxBuffer[WASM_SERIAL_RX_BUFFER_SIZE];
+static uint8_t wasmSerialTxBuffer[WASM_SERIAL_TX_BUFFER_SIZE];
 
 // Serial port structure
 static serialPort_t wasmSerialPort;
+
+// Track initialization state
+static bool wasmSerialInitialized = false;
 
 // Forward declarations
 static void wasmSerialWrite(serialPort_t *instance, uint8_t ch);
@@ -88,6 +104,10 @@ static const struct serialPortVTable wasmSerialVTable = {
  */
 serialPort_t *wasmSerialInit(void)
 {
+    if (wasmSerialInitialized) {
+        return &wasmSerialPort;  // Already initialized
+    }
+
     wasmSerialPort.vTable = &wasmSerialVTable;
     wasmSerialPort.identifier = SERIAL_PORT_NONE;  // Virtual port
     wasmSerialPort.mode = MODE_RXTX;
@@ -106,6 +126,7 @@ serialPort_t *wasmSerialInit(void)
     wasmSerialPort.rxCallback = NULL;
     wasmSerialPort.rxCallbackData = NULL;
 
+    wasmSerialInitialized = true;
     return &wasmSerialPort;
 }
 
@@ -173,7 +194,11 @@ static void wasmSerialSetBaudRate(serialPort_t *instance, uint32_t baudRate)
 
 static bool wasmSerialIsTransmitBufferEmpty(const serialPort_t *instance)
 {
-    return instance->txBufferHead == instance->txBufferTail;
+    // For WASM, always return true to avoid blocking in waitForSerialPortToFinishTransmitting()
+    // JavaScript reads TX buffer asynchronously via interrupt-style callback, so we don't
+    // need to wait here - the main loop will yield control and JS will read the bytes
+    UNUSED(instance);
+    return true;
 }
 
 static void wasmSerialSetMode(serialPort_t *instance, portMode_t mode)
@@ -214,7 +239,9 @@ static void wasmSerialBeginWrite(serialPort_t *instance)
 static void wasmSerialEndWrite(serialPort_t *instance)
 {
     (void)instance;
-    // No-op for WASM
+    // Notify JavaScript that data is available (like a hardware interrupt)
+    // This is called after MSP writes a complete response frame
+    notifySerialDataAvailable();
 }
 
 // ============================================================================
@@ -230,6 +257,11 @@ static void wasmSerialEndWrite(serialPort_t *instance)
 EMSCRIPTEN_KEEPALIVE
 void serialWriteByte(uint8_t data)
 {
+    // Ensure serial port is initialized before first use
+    if (!wasmSerialInitialized) {
+        wasmSerialInit();
+    }
+
     serialPort_t *port = &wasmSerialPort;
     uint32_t nextHead = (port->rxBufferHead + 1) % port->rxBufferSize;
 
@@ -249,6 +281,11 @@ void serialWriteByte(uint8_t data)
 EMSCRIPTEN_KEEPALIVE
 int serialReadByte(void)
 {
+    // Ensure serial port is initialized
+    if (!wasmSerialInitialized) {
+        return -1;  // Not initialized yet, no data
+    }
+
     serialPort_t *port = &wasmSerialPort;
 
     if (port->txBufferHead == port->txBufferTail) {
@@ -270,6 +307,11 @@ int serialReadByte(void)
 EMSCRIPTEN_KEEPALIVE
 int serialAvailable(void)
 {
+    // Ensure serial port is initialized
+    if (!wasmSerialInitialized) {
+        return 0;  // Not initialized yet, no data
+    }
+
     serialPort_t *port = &wasmSerialPort;
 
     // Calculate bytes used (available to read)
