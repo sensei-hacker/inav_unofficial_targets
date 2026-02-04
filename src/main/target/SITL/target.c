@@ -55,7 +55,7 @@
 #include "config/config_streamer.h"
 #include "build/version.h"
 
-#ifdef WASM_BUILD
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
@@ -404,7 +404,7 @@ void delay(timeMs_t ms)
 
 void systemReset(void)
 {
-#ifdef WASM_BUILD
+#ifdef __EMSCRIPTEN__
     fprintf(stderr, "[SYSTEM] Reset requested - notifying JavaScript and exiting WASM\n");
 
     // Step 1: Notify JavaScript to reload the page

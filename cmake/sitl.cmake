@@ -102,8 +102,6 @@ set(SITL_DEFINITIONS
 
 # WebAssembly-specific settings
 if(${TOOLCHAIN} STREQUAL "wasm")
-    # Define WASM_BUILD for WASM-specific code paths
-    list(APPEND SITL_DEFINITIONS WASM_BUILD)
     # Disable simulator for WASM builds
     list(APPEND SITL_DEFINITIONS SKIP_SIMULATOR=1)
 

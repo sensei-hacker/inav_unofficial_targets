@@ -27,7 +27,7 @@
  * This properly simulates serial communication and reuses all existing MSP code.
  */
 
-#ifdef WASM_BUILD
+#ifdef __EMSCRIPTEN__
 
 #include <emscripten.h>
 #include <stdint.h>
@@ -77,4 +77,4 @@ void wasmMspProcess(void)
     mspSerialProcessOnePort(wasmMspPort, MSP_SKIP_NON_MSP_DATA, mspFcProcessCommand);
 }
 
-#endif  // WASM_BUILD
+#endif  // __EMSCRIPTEN__
