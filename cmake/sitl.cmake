@@ -12,13 +12,16 @@ main_sources(SITL_COMMON_SRC_EXCLUDES
 )
 
 main_sources(SITL_SRC
-    config/config_streamer_file.c
     drivers/serial_websocket.c
     drivers/serial_websocket.h
 )
 
 # Only include TCP server and simulator code for non-WASM builds
 if(NOT ${TOOLCHAIN} STREQUAL "wasm")
+    # File-based config storage for native SITL
+    main_sources(SITL_SRC
+        config/config_streamer_file.c
+    )
     main_sources(SITL_SRC
         drivers/serial_tcp.c
         drivers/serial_tcp.h
@@ -33,7 +36,9 @@ if(NOT ${TOOLCHAIN} STREQUAL "wasm")
     )
 else()
     # WASM-specific: Manual PG registry (linker script not supported)
+    # RAM-based config storage (no file I/O in browser)
     main_sources(SITL_SRC
+        config/config_streamer_ram.c
         target/SITL/wasm_pg_registry.c
         target/SITL/wasm_pg_runtime.c
         target/SITL/wasm_stubs.c
@@ -97,6 +102,8 @@ set(SITL_DEFINITIONS
 
 # WebAssembly-specific settings
 if(${TOOLCHAIN} STREQUAL "wasm")
+    # Define WASM_BUILD for WASM-specific code paths
+    list(APPEND SITL_DEFINITIONS WASM_BUILD)
     # Disable simulator for WASM builds
     list(APPEND SITL_DEFINITIONS SKIP_SIMULATOR=1)
 
@@ -105,6 +112,7 @@ if(${TOOLCHAIN} STREQUAL "wasm")
         # Phase 5 MVP: Disable pthreads
         # -pthread
         -funsigned-char
+        -g                          # Debug symbols for browser DevTools
     )
 
     # Emscripten linker options
@@ -114,10 +122,15 @@ if(${TOOLCHAIN} STREQUAL "wasm")
         # -sUSE_PTHREADS=1
         # -sPTHREAD_POOL_SIZE=8
         -sALLOW_MEMORY_GROWTH=1
+        # ASYNCIFY allows WASM to unwind the call stack when exiting from EM_ASM callbacks.
+        # Without this, emscripten_force_exit() called from within EM_ASM (in systemReset)
+        # would freeze the JS event loop, preventing the reload IPC message from being processed.
+        -sASYNCIFY=1
         -sWEBSOCKET_URL="ws://localhost:5771"
         -sFORCE_FILESYSTEM=1
         -sEXPORTED_FUNCTIONS=_main,_wasm_msp_process_command,_wasm_msp_get_api_version,_wasm_msp_get_fc_variant,_serialWriteByte,_serialReadByte,_serialAvailable,_malloc,_free
         -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString,stringToUTF8,lengthBytesUTF8,getValue,setValue
+        -gsource-map                                      # Generate .wasm.map for browser debugging
         -lidbfs.js
     )
 
