@@ -23,6 +23,27 @@
 #include "fc/config.h"
 
 /**
+ * Fix up a profile's current-profile pointer if it's missing or NULL.
+ * Returns the current profile pointer, or NULL on allocation failure.
+ */
+static void* fixupProfilePointer(pgRegistry_t *mutableReg)
+{
+    if (!mutableReg->ptr) {
+        // Allocate the pointer variable
+        uint8_t **currentPtr = (uint8_t**)calloc(1, sizeof(uint8_t*));
+        if (!currentPtr) {
+            return NULL;
+        }
+        *currentPtr = mutableReg->address;
+        mutableReg->ptr = currentPtr;
+    } else if (!*mutableReg->ptr) {
+        // Pointer exists but points to NULL
+        *mutableReg->ptr = mutableReg->address;
+    }
+    return *mutableReg->ptr;
+}
+
+/**
  * Ensure a parameter group has allocated memory.
  *
  * This function is called by the PG_DECLARE accessor macros on every config access.
@@ -46,33 +67,14 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
     const bool isProfile = pgIsProfile(reg);
 
     // Check if already allocated by testing if address is NULL
-    // This is simpler and avoids PGN hash collisions
     if (reg->address != NULL) {
-        // Already initialized, return existing pointer
         if (isProfile) {
-            // For profiles, return the current profile pointer
-            // BUT: Check if reg->ptr and *reg->ptr are valid!
+            // Ensure profile pointer is valid, fix if needed
             if (!reg->ptr || !*reg->ptr) {
-                // Storage exists but ptr is broken - fix it
-                pgRegistry_t *mutableReg = (pgRegistry_t*)reg;
-                if (!reg->ptr) {
-                    // Allocate the pointer variable
-                    uint8_t **currentPtr = (uint8_t**)calloc(1, sizeof(uint8_t*));
-                    if (!currentPtr) {
-                        return NULL;
-                    }
-                    *currentPtr = reg->address;  // Point to existing storage
-                    mutableReg->ptr = currentPtr;
-                } else {
-                    // Pointer exists but points to NULL - fix it
-                    *mutableReg->ptr = reg->address;
-                }
-                return *reg->ptr;
-            } else {
-                return *reg->ptr;
+                return fixupProfilePointer((pgRegistry_t*)reg);
             }
+            return *reg->ptr;
         } else {
-            // For system configs, return the address
             return reg->address;
         }
     }
