@@ -66,8 +66,9 @@ static serialPort_t wasmSerialPort;
 // Track initialization state
 static bool wasmSerialInitialized = false;
 
-// Debug counter for dropped TX bytes (buffer overflow)
+// Debug counters for dropped bytes (buffer overflow)
 static uint32_t wasmSerialTxDroppedBytes = 0;
+static uint32_t wasmSerialRxDroppedBytes = 0;
 
 // Forward declarations
 static void wasmSerialWrite(serialPort_t *instance, uint8_t ch);
@@ -270,10 +271,12 @@ void serialWriteByte(uint8_t data)
     serialPort_t *port = &wasmSerialPort;
     uint32_t nextHead = (port->rxBufferHead + 1) % port->rxBufferSize;
 
-    // If buffer full, drop the byte
     if (nextHead != port->rxBufferTail) {
         port->rxBuffer[port->rxBufferHead] = data;
         port->rxBufferHead = nextHead;
+    } else {
+        // Buffer full - drop byte and track for debugging
+        wasmSerialRxDroppedBytes++;
     }
 }
 

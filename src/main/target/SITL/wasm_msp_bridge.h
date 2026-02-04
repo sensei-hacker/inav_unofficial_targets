@@ -27,27 +27,4 @@
  */
 void wasmMspProcess(void);
 
-/**
- * Process MSP command directly (Mode 1 - Phase 5 compatibility)
- * @param cmdId      MSP command ID
- * @param cmdData    Command data buffer
- * @param cmdLen     Command data length
- * @param replyData  Reply data buffer
- * @param replyMaxLen Maximum reply buffer size
- * @return Number of bytes in reply, or negative on error
- */
-int wasm_msp_process_command(uint16_t cmdId, uint8_t *cmdData, int cmdLen, uint8_t *replyData, int replyMaxLen);
-
-/**
- * Get MSP API version (convenience function)
- * @return API version (major << 16 | minor)
- */
-uint32_t wasm_msp_get_api_version(void);
-
-/**
- * Get FC variant string (convenience function)
- * @return FC variant string (e.g., "INAV")
- */
-const char* wasm_msp_get_fc_variant(void);
-
 #endif // __EMSCRIPTEN__
