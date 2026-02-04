@@ -22,9 +22,6 @@
 #include "config/parameter_group.h"
 #include "fc/config.h"
 
-// Track which PGs have been initialized to avoid double-allocation
-static bool pgInitialized[256] = {0};  // Max 256 PGs (pgn_t is uint16_t, use lower 8 bits)
-
 /**
  * Ensure a parameter group has allocated memory.
  *
@@ -43,19 +40,35 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         return NULL;
     }
 
-    const uint16_t pgn = pgN(reg);
     const uint16_t regSize = pgSize(reg);
     const bool isProfile = pgIsProfile(reg);
 
-    // Use simple index for tracking (pgn & 0xFF should be unique enough)
-    const uint8_t trackingIndex = pgn & 0xFF;
-
-    // Check if already allocated
-    if (pgInitialized[trackingIndex]) {
+    // Check if already allocated by testing if address is NULL
+    // This is simpler and avoids PGN hash collisions
+    if (reg->address != NULL) {
         // Already initialized, return existing pointer
         if (isProfile) {
             // For profiles, return the current profile pointer
-            return *reg->ptr;
+            // BUT: Check if reg->ptr and *reg->ptr are valid!
+            if (!reg->ptr || !*reg->ptr) {
+                // Storage exists but ptr is broken - fix it
+                pgRegistry_t *mutableReg = (pgRegistry_t*)reg;
+                if (!reg->ptr) {
+                    // Allocate the pointer variable
+                    uint8_t **currentPtr = (uint8_t**)calloc(1, sizeof(uint8_t*));
+                    if (!currentPtr) {
+                        return NULL;
+                    }
+                    *currentPtr = reg->address;  // Point to existing storage
+                    mutableReg->ptr = currentPtr;
+                } else {
+                    // Pointer exists but points to NULL - fix it
+                    *mutableReg->ptr = reg->address;
+                }
+                return *reg->ptr;
+            } else {
+                return *reg->ptr;
+            }
         } else {
             // For system configs, return the address
             return reg->address;
@@ -73,7 +86,9 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         uint8_t *copyStorage = (uint8_t*)calloc(1, copySize);
 
         if (!storage || !copyStorage) {
-            // Allocation failed - return NULL (will likely crash, but better than memory corruption)
+            // Allocation failed - clean up partial allocation
+            free(storage);      // safe if NULL
+            free(copyStorage);  // safe if NULL
             return NULL;
         }
 
@@ -82,9 +97,21 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         mutableReg->address = storage;
         mutableReg->copy = copyStorage;
 
-        // Allocate profile current pointer if not already present
-        if (!*reg->ptr) {
-            *reg->ptr = storage;  // Point to first profile by default
+        // For WASM, profile configs may not have reg->ptr allocated
+        // (native builds create _ProfileCurrent global, WASM doesn't)
+        if (!reg->ptr) {
+            // Allocate the current profile pointer
+            uint8_t **currentPtr = (uint8_t**)calloc(1, sizeof(uint8_t*));
+            if (!currentPtr) {
+                free(storage);
+                free(copyStorage);
+                return NULL;
+            }
+            *currentPtr = storage;  // Point to first profile by default
+            mutableReg->ptr = currentPtr;
+        } else if (!*reg->ptr) {
+            // Pointer exists but not initialized - point it to first profile
+            *reg->ptr = storage;
         }
 
         // Initialize all profiles with defaults
@@ -102,7 +129,6 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             // Note: Reset functions are disabled for WASM (see parameter_group.c)
         }
 
-        pgInitialized[trackingIndex] = true;
         return *reg->ptr;  // Return current profile
 
     } else {
@@ -111,6 +137,9 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         uint8_t *copyMemory = (uint8_t*)calloc(1, regSize);
 
         if (!memory || !copyMemory) {
+            // Clean up partial allocation
+            free(memory);       // safe if NULL
+            free(copyMemory);   // safe if NULL
             return NULL;
         }
 
@@ -129,7 +158,6 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         }
         // Note: Reset functions are disabled for WASM (see parameter_group.c)
 
-        pgInitialized[trackingIndex] = true;
         return memory;
     }
 }
