@@ -31,6 +31,8 @@
  * 2. Initializes with defaults via pgResetInstance()
  * 3. For profile configs, allocates storage for all profiles
  *
+ * NOT thread-safe - safe only for single-threaded WASM builds.
+ *
  * @param reg  The parameter group registry entry
  * @return Pointer to the allocated memory (system config or current profile)
  */
