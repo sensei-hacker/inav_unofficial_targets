@@ -37,28 +37,10 @@ bool tcpReceiveBytesEx(void *instance, uint8_t **buffer, int count, uint32_t tim
 uint16_t tcpBasePort = 0;  // TCP not used in WASM builds
 
 // ============================================================================
-// Config Streamer Stubs
+// Config Streamer - provided by config/config_streamer_ram.c for WASM
 // ============================================================================
-// EEPROM persistence via file I/O - stubbed for Phase 1 POC
-// TODO Phase 2: Implement using IndexedDB (Emscripten's IDBFS)
-
-// From config/config_streamer.h
-void config_streamer_impl_unlock(void *config) {
-    (void)config;
-    // Stub: Would unlock config for writing
-}
-
-void config_streamer_impl_lock(void *config) {
-    (void)config;
-    // Stub: Would lock config after writing
-}
-
-int config_streamer_impl_write_word(void *config, uint32_t value) {
-    (void)config;
-    (void)value;
-    // Stub: Would write 32-bit value to config storage
-    return 0;  // Success (fake)
-}
+// Settings stored in RAM only (not persisted across page reloads)
+// See cmake/sitl.cmake which includes config_streamer_ram.c for WASM builds
 
 // ============================================================================
 // WebSocket Serial Stubs
@@ -78,14 +60,11 @@ void *wsOpen(int uart_index, uint16_t port) {
 // ============================================================================
 // EEPROM Validation Stubs
 // ============================================================================
-// Skip EEPROM validation in WASM - just use default configs
-// TODO Phase 3: Implement proper IndexedDB-based persistence
 
 // From fc/config.h
 void ensureEEPROMContainsValidData(void) {
-    // Stub: Skip EEPROM validation for WASM POC
-    // In WASM, we don't have persistent storage yet (Phase 3: IndexedDB)
-    // Just use default configs from pgResetAll()
+    // WASM uses RAM-based config with defaults initialized by pgResetAll().
+    // No persistent storage means no stale/corrupt EEPROM data to validate.
 }
 
 #endif // __EMSCRIPTEN__
