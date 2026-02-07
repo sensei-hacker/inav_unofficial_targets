@@ -227,7 +227,7 @@ static void wasmSerialWriteBuf(serialPort_t *instance, const void *data, int cou
 
 static bool wasmSerialIsConnected(const serialPort_t *instance)
 {
-    (void)instance;
+    UNUSED(instance);
     return true;  // Always connected for WASM
 }
 
@@ -238,7 +238,7 @@ static bool wasmSerialIsIdle(serialPort_t *instance)
 
 static void wasmSerialBeginWrite(serialPort_t *instance)
 {
-    (void)instance;
+    UNUSED(instance);
     // No-op for WASM
 }
 
@@ -247,7 +247,7 @@ static uint32_t wasmSerialResponsesSent = 0;
 
 static void wasmSerialEndWrite(serialPort_t *instance)
 {
-    (void)instance;
+    UNUSED(instance);
     wasmSerialResponsesSent++;
 
     // Check how many bytes are in TX buffer
