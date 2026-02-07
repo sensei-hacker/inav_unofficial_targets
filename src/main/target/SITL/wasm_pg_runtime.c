@@ -103,7 +103,11 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             return NULL;
         }
 
-        // Update registry pointers (cast away const - this is initialization)
+        // Cast away const to update registry pointers during initialization.
+        // This is safe because:
+        // 1. In WASM, PG registry entries are in the heap (mutable), not ROM
+        // 2. This is one-time initialization, not runtime modification
+        // 3. The const declaration prevents accidental modification elsewhere
         pgRegistry_t *mutableReg = (pgRegistry_t*)reg;
         mutableReg->address = storage;
         mutableReg->copy = copyStorage;
@@ -157,7 +161,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             return NULL;
         }
 
-        // Update registry pointers
+        // Cast away const (see profile config comment above for safety rationale)
         pgRegistry_t *mutableReg = (pgRegistry_t*)reg;
         mutableReg->address = memory;
         mutableReg->copy = copyMemory;
