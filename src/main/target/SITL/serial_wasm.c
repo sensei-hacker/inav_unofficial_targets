@@ -348,4 +348,26 @@ int serialAvailable(void)
     }
 }
 
+/**
+ * Get count of bytes dropped due to RX buffer overflow
+ * JavaScript can call this to detect if the firmware is receiving data faster
+ * than it can process.
+ */
+EMSCRIPTEN_KEEPALIVE
+uint32_t serialGetRxDroppedBytes(void)
+{
+    return wasmSerialRxDroppedBytes;
+}
+
+/**
+ * Get count of bytes dropped due to TX buffer overflow
+ * JavaScript can call this to detect if the firmware is sending data faster
+ * than JavaScript is reading.
+ */
+EMSCRIPTEN_KEEPALIVE
+uint32_t serialGetTxDroppedBytes(void)
+{
+    return wasmSerialTxDroppedBytes;
+}
+
 #endif  // __EMSCRIPTEN__
