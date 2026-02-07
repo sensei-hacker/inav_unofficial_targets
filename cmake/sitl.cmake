@@ -62,14 +62,14 @@ if(${CYGWIN})
     set(SITL_LINK_OPTIONS ${SITL_LINK_OPTIONS} "-static-libgcc")
 endif()
 
-set(SITL_LINK_LIBRARIS
+set(SITL_LINK_LIBRARIES
     -lpthread
     -lm
     -lc
 )
 
 if(NOT MACOSX)
-    set(SITL_LINK_LIBRARIS ${SITL_LINK_LIBRARIS} -lrt)
+    set(SITL_LINK_LIBRARIES ${SITL_LINK_LIBRARIES} -lrt)
 endif()
 
 set(SITL_COMPILE_OPTIONS
@@ -136,7 +136,7 @@ if(${TOOLCHAIN} STREQUAL "wasm")
     )
 
     # Override libraries for WASM (no system libs needed)
-    set(SITL_LINK_LIBRARIS "")
+    set(SITL_LINK_LIBRARIES "")
 endif()
 
 function (target_sitl name)
@@ -187,7 +187,7 @@ function (target_sitl name)
 
     target_compile_options(${exe_target} PRIVATE ${SITL_COMPILE_OPTIONS})
 
-    target_link_libraries(${exe_target} PRIVATE ${SITL_LINK_LIBRARIS})
+    target_link_libraries(${exe_target} PRIVATE ${SITL_LINK_LIBRARIES})
     target_link_options(${exe_target} PRIVATE ${SITL_LINK_OPTIONS})
 
     # Only use linker script for non-WASM builds

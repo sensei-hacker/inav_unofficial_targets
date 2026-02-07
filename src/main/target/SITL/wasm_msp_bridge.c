@@ -63,9 +63,6 @@ static void wasmMspInit(void)
     resetMspPort(wasmMspPort, serialPort);
 }
 
-// Debug: track main loop calls
-static uint32_t wasmMspProcessCalls = 0;
-
 /**
  * Process WASM MSP serial port
  * This should be called periodically (e.g., from main loop)
@@ -76,8 +73,6 @@ void wasmMspProcess(void)
     if (wasmMspPort == NULL) {
         wasmMspInit();
     }
-
-    wasmMspProcessCalls++;
 
     // Use standard MSP serial processing (same as UART/TCP/UDP/BLE!)
     mspSerialProcessOnePort(wasmMspPort, MSP_SKIP_NON_MSP_DATA, mspFcProcessCommand);

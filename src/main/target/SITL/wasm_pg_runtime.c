@@ -104,16 +104,15 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
     // Need to allocate memory
     if (isProfile) {
         // Profile configs: Allocate arrays for all profiles
-        const size_t totalSize = regSize * MAX_PROFILE_COUNT;
-        const size_t copySize = regSize * MAX_PROFILE_COUNT;
+        const size_t arraySize = regSize * MAX_PROFILE_COUNT;
 
-        // Allocate storage arrays
-        uint8_t *storage = (uint8_t*)calloc(1, totalSize);
-        uint8_t *copyStorage = (uint8_t*)calloc(1, copySize);
+        // Allocate storage arrays (main config and backup copy)
+        uint8_t *storage = (uint8_t*)calloc(1, arraySize);
+        uint8_t *copyStorage = (uint8_t*)calloc(1, arraySize);
 
         if (!storage || !copyStorage) {
             // Allocation failed - clean up partial allocation
-            PG_ALLOC_ERROR(pgN(reg), totalSize);
+            PG_ALLOC_ERROR(pgN(reg), arraySize);
             free(storage);      // safe if NULL
             free(copyStorage);  // safe if NULL
             return NULL;
