@@ -138,9 +138,14 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             memset(base, 0, regSize);
 
             // Load reset template if available.
-            // In WASM, function table indices are small (< 4096), while data
-            // pointers are actual memory addresses (>= 4096). Use this to
-            // distinguish reset templates (data) from reset functions.
+            // The reset union contains either a function pointer (reset.fn) or
+            // a data pointer to a reset template (reset.ptr). In Emscripten:
+            // - Function pointers are indices into the WebAssembly function table
+            //   (typically small values < 4096)
+            // - Data pointers are actual linear memory addresses (>= 4096 since
+            //   the first 4KB is typically reserved/unmapped)
+            // This heuristic works for current Emscripten versions but may need
+            // adjustment if Emscripten changes its memory layout.
             if (reg->reset.ptr && (uintptr_t)reg->reset.ptr >= 4096) {
                 memcpy(base, reg->reset.ptr, regSize);
             }
@@ -169,7 +174,8 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         // Initialize with defaults
         memset(memory, 0, regSize);
 
-        // Load reset template if available (see profile config comment above)
+        // Load reset template if available (see profile config loop for
+        // explanation of the >= 4096 heuristic for distinguishing data vs function pointers)
         if (reg->reset.ptr && (uintptr_t)reg->reset.ptr >= 4096) {
             memcpy(memory, reg->reset.ptr, regSize);
         }
