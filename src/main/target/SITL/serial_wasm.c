@@ -66,9 +66,13 @@ static serialPort_t wasmSerialPort;
 // Track initialization state
 static bool wasmSerialInitialized = false;
 
-// Debug counters for dropped bytes (buffer overflow)
+// Counters for dropped bytes (buffer overflow) - exposed via serialGetRx/TxDroppedBytes()
 static uint32_t wasmSerialTxDroppedBytes = 0;
 static uint32_t wasmSerialRxDroppedBytes = 0;
+
+// One-time overflow warning flags (log first occurrence only to avoid console spam)
+static bool wasmSerialTxOverflowLogged = false;
+static bool wasmSerialRxOverflowLogged = false;
 
 // Forward declarations
 static void wasmSerialWrite(serialPort_t *instance, uint8_t ch);
@@ -157,6 +161,10 @@ static void wasmSerialWrite(serialPort_t *instance, uint8_t ch)
     } else {
         // Buffer full - drop byte and track for debugging
         wasmSerialTxDroppedBytes++;
+        if (!wasmSerialTxOverflowLogged) {
+            wasmSerialTxOverflowLogged = true;
+            EM_ASM({ console.error('[WASM Serial] TX buffer overflow - firmware sending faster than JS reading'); });
+        }
     }
 }
 
@@ -278,6 +286,10 @@ void serialWriteByte(uint8_t data)
     } else {
         // Buffer full - drop byte (counter available via serialGetRxDroppedBytes)
         wasmSerialRxDroppedBytes++;
+        if (!wasmSerialRxOverflowLogged) {
+            wasmSerialRxOverflowLogged = true;
+            EM_ASM({ console.error('[WASM Serial] RX buffer overflow - JS sending faster than firmware processing'); });
+        }
     }
 }
 

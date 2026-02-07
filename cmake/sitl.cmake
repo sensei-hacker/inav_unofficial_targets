@@ -41,6 +41,7 @@ else()
         config/config_streamer_ram.c
         target/SITL/wasm_pg_registry.c
         target/SITL/wasm_pg_runtime.c
+        target/SITL/wasm_pg_runtime.h
         target/SITL/wasm_stubs.c
         target/SITL/wasm_msp_bridge.c
         target/SITL/serial_wasm.c

@@ -22,10 +22,26 @@
 #include "platform.h"
 #include "config/parameter_group.h"
 #include "fc/config.h"
+#include "target/SITL/wasm_pg_runtime.h"
 
 // Log allocation failures to browser console for debugging
 #define PG_ALLOC_ERROR(pgn, bytes) \
     EM_ASM({ console.error('[WASM PG] Allocation failed: pgn=' + $0 + ' size=' + $1); }, pgn, bytes)
+
+// Debug: Warn about suspicious pointer values that could break our heuristic.
+// Values 1-100 are in a gray zone - could be small function table indices or
+// unlikely but valid memory addresses. Log these for investigation.
+#ifdef DEBUG
+#define PG_WARN_SUSPICIOUS_RESET_PTR(pgn, ptr) \
+    do { \
+        uintptr_t _p = (uintptr_t)(ptr); \
+        if (_p > 0 && _p < 100) { \
+            EM_ASM({ console.warn('[WASM PG] Suspicious reset pointer pgn=' + $0 + ' ptr=' + $1 + ' (may be misidentified function/data)'); }, pgn, _p); \
+        } \
+    } while(0)
+#else
+#define PG_WARN_SUSPICIOUS_RESET_PTR(pgn, ptr) ((void)0)
+#endif
 
 /**
  * Fix up a profile's current-profile pointer if it's missing or NULL.
@@ -146,6 +162,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             //   the first 4KB is typically reserved/unmapped)
             // This heuristic works for current Emscripten versions but may need
             // adjustment if Emscripten changes its memory layout.
+            PG_WARN_SUSPICIOUS_RESET_PTR(pgN(reg), reg->reset.ptr);
             if (reg->reset.ptr && (uintptr_t)reg->reset.ptr >= 4096) {
                 memcpy(base, reg->reset.ptr, regSize);
             }
@@ -176,6 +193,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
 
         // Load reset template if available (see profile config loop for
         // explanation of the >= 4096 heuristic for distinguishing data vs function pointers)
+        PG_WARN_SUSPICIOUS_RESET_PTR(pgN(reg), reg->reset.ptr);
         if (reg->reset.ptr && (uintptr_t)reg->reset.ptr >= 4096) {
             memcpy(memory, reg->reset.ptr, regSize);
         }
