@@ -242,21 +242,9 @@ static void wasmSerialBeginWrite(serialPort_t *instance)
     // No-op for WASM
 }
 
-// Debug: track responses sent
-static uint32_t wasmSerialResponsesSent = 0;
-
 static void wasmSerialEndWrite(serialPort_t *instance)
 {
     UNUSED(instance);
-    wasmSerialResponsesSent++;
-
-    // Check how many bytes are in TX buffer
-    uint32_t txBytes = 0;
-    if (wasmSerialPort.txBufferHead >= wasmSerialPort.txBufferTail) {
-        txBytes = wasmSerialPort.txBufferHead - wasmSerialPort.txBufferTail;
-    } else {
-        txBytes = wasmSerialPort.txBufferSize - wasmSerialPort.txBufferTail + wasmSerialPort.txBufferHead;
-    }
 
     // Notify JavaScript that data is available (like a hardware interrupt)
     // This is called after MSP writes a complete response frame
@@ -273,9 +261,6 @@ static void wasmSerialEndWrite(serialPort_t *instance)
  *
  * @param data Byte to write
  */
-// Debug: track bytes received from JS
-static uint32_t wasmSerialBytesReceived = 0;
-
 EMSCRIPTEN_KEEPALIVE
 void serialWriteByte(uint8_t data)
 {
@@ -283,8 +268,6 @@ void serialWriteByte(uint8_t data)
     if (!wasmSerialInitialized) {
         wasmSerialInit();
     }
-
-    wasmSerialBytesReceived++;
 
     serialPort_t *port = &wasmSerialPort;
     uint32_t nextHead = (port->rxBufferHead + 1) % port->rxBufferSize;
