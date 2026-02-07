@@ -14,6 +14,16 @@
 #include <stddef.h>
 
 // ============================================================================
+// POSIX Scheduler Stubs
+// ============================================================================
+// POSIX scheduler functions not available in WASM
+
+int sched_get_priority_min(int policy) {
+    (void)policy;
+    return 0;  // Return minimum priority
+}
+
+// ============================================================================
 // TCP Server Stubs
 // ============================================================================
 // TCP server is disabled for WASM (WebSocket only), but some code still

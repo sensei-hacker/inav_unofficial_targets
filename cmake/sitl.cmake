@@ -104,6 +104,8 @@ set(SITL_DEFINITIONS
 if(${TOOLCHAIN} STREQUAL "wasm")
     # Disable simulator for WASM builds
     list(APPEND SITL_DEFINITIONS SKIP_SIMULATOR=1)
+    # Use RAM-based config storage (no file I/O in browser)
+    list(APPEND SITL_DEFINITIONS CONFIG_IN_RAM)
 
     # Emscripten-specific compile options
     set(SITL_COMPILE_OPTIONS ${SITL_COMPILE_OPTIONS}

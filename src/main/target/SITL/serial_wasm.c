@@ -242,9 +242,24 @@ static void wasmSerialBeginWrite(serialPort_t *instance)
     // No-op for WASM
 }
 
+// Debug: track responses sent
+static uint32_t wasmSerialResponsesSent = 0;
+
 static void wasmSerialEndWrite(serialPort_t *instance)
 {
     (void)instance;
+    wasmSerialResponsesSent++;
+
+    // Check how many bytes are in TX buffer
+    uint32_t txBytes = 0;
+    if (wasmSerialPort.txBufferHead >= wasmSerialPort.txBufferTail) {
+        txBytes = wasmSerialPort.txBufferHead - wasmSerialPort.txBufferTail;
+    } else {
+        txBytes = wasmSerialPort.txBufferSize - wasmSerialPort.txBufferTail + wasmSerialPort.txBufferHead;
+    }
+
+    EM_ASM({ console.log('[WASM DEBUG] wasmSerialEndWrite: response', $0, 'TX bytes:', $1); }, wasmSerialResponsesSent, txBytes);
+
     // Notify JavaScript that data is available (like a hardware interrupt)
     // This is called after MSP writes a complete response frame
     notifySerialDataAvailable();
@@ -260,12 +275,21 @@ static void wasmSerialEndWrite(serialPort_t *instance)
  *
  * @param data Byte to write
  */
+// Debug: track bytes received from JS
+static uint32_t wasmSerialBytesReceived = 0;
+
 EMSCRIPTEN_KEEPALIVE
 void serialWriteByte(uint8_t data)
 {
     // Ensure serial port is initialized before first use
     if (!wasmSerialInitialized) {
         wasmSerialInit();
+        EM_ASM({ console.log('[WASM DEBUG] serialWriteByte: initialized serial port'); });
+    }
+
+    wasmSerialBytesReceived++;
+    if (wasmSerialBytesReceived <= 10) {
+        EM_ASM({ console.log('[WASM DEBUG] serialWriteByte: received byte', $0, 'total:', $1); }, data, wasmSerialBytesReceived);
     }
 
     serialPort_t *port = &wasmSerialPort;
@@ -277,6 +301,7 @@ void serialWriteByte(uint8_t data)
     } else {
         // Buffer full - drop byte and track for debugging
         wasmSerialRxDroppedBytes++;
+        EM_ASM({ console.log('[WASM DEBUG] serialWriteByte: RX buffer full, dropped byte'); });
     }
 }
 

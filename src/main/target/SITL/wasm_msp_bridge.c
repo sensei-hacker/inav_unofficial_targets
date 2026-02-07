@@ -33,6 +33,7 @@
 #include <stdint.h>
 
 #include "platform.h"
+#include "drivers/serial.h"
 #include "msp/msp.h"
 #include "msp/msp_serial.h"
 #include "fc/fc_msp.h"
@@ -62,6 +63,9 @@ static void wasmMspInit(void)
     resetMspPort(wasmMspPort, serialPort);
 }
 
+// Debug: track main loop calls
+static uint32_t wasmMspProcessCalls = 0;
+
 /**
  * Process WASM MSP serial port
  * This should be called periodically (e.g., from main loop)
@@ -71,6 +75,14 @@ void wasmMspProcess(void)
 {
     if (wasmMspPort == NULL) {
         wasmMspInit();
+        EM_ASM({ console.log('[WASM DEBUG] wasmMspProcess: MSP port initialized'); });
+    }
+
+    wasmMspProcessCalls++;
+    if (wasmMspProcessCalls <= 5 || (wasmMspProcessCalls % 1000 == 0)) {
+        // Check if there are bytes waiting
+        uint32_t rxWaiting = serialRxBytesWaiting(wasmMspPort->port);
+        EM_ASM({ console.log('[WASM DEBUG] wasmMspProcess call', $0, 'rxWaiting:', $1); }, wasmMspProcessCalls, rxWaiting);
     }
 
     // Use standard MSP serial processing (same as UART/TCP/UDP/BLE!)

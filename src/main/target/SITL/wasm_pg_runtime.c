@@ -126,12 +126,10 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             memset(base, 0, regSize);
 
             // Load reset template if available.
-            // Note: __pg_resetdata_start/end are linker-defined symbols that mark
-            // the reset data section. In WASM builds without a linker script, these
-            // symbols are typically 0, so this check is effectively disabled.
-            // Parameter groups will use their zero-initialized defaults instead.
-            if (reg->reset.ptr >= (void*)__pg_resetdata_start &&
-                reg->reset.ptr < (void*)__pg_resetdata_end) {
+            // In WASM, function table indices are small (< 4096), while data
+            // pointers are actual memory addresses (>= 4096). Use this to
+            // distinguish reset templates (data) from reset functions.
+            if (reg->reset.ptr && (uintptr_t)reg->reset.ptr >= 4096) {
                 memcpy(base, reg->reset.ptr, regSize);
             }
         }
@@ -159,8 +157,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         memset(memory, 0, regSize);
 
         // Load reset template if available (see profile config comment above)
-        if (reg->reset.ptr >= (void*)__pg_resetdata_start &&
-            reg->reset.ptr < (void*)__pg_resetdata_end) {
+        if (reg->reset.ptr && (uintptr_t)reg->reset.ptr >= 4096) {
             memcpy(memory, reg->reset.ptr, regSize);
         }
 

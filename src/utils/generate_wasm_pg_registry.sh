@@ -41,10 +41,16 @@ cat > "$OUTPUT_FILE" << 'EOF_HEADER'
  *
  * This file manually declares all PG registry symbols and provides the
  * __pg_registry_start and __pg_registry_end pointers for WASM builds.
+ *
+ * IMPORTANT: The registry is stored as a contiguous array of pgRegistry_t STRUCTS
+ * (not pointers!) because PG_FOREACH iterates with reg++ which moves by
+ * sizeof(pgRegistry_t). The structs are copied from scattered source registries
+ * at runtime by wasmPgRegistryInit().
  */
 
 #ifdef __EMSCRIPTEN__
 
+#include <stdbool.h>
 #include "config/parameter_group.h"
 
 EOF_HEADER
@@ -56,22 +62,53 @@ for name in $PG_NAMES; do
 done
 
 echo "" >> "$OUTPUT_FILE"
-echo "// Array of all PG registry pointers" >> "$OUTPUT_FILE"
-echo "static const pgRegistry_t* __wasm_pg_registry[] = {" >> "$OUTPUT_FILE"
+echo "// Number of registry entries" >> "$OUTPUT_FILE"
+echo "#define WASM_PG_REGISTRY_COUNT $PG_COUNT" >> "$OUTPUT_FILE"
+
+echo "" >> "$OUTPUT_FILE"
+echo "// Array of pointers to all PG registry entries (for building contiguous array)" >> "$OUTPUT_FILE"
+echo "static const pgRegistry_t* const __wasm_pg_registry_ptrs[WASM_PG_REGISTRY_COUNT] = {" >> "$OUTPUT_FILE"
 for name in $PG_NAMES; do
     echo "    &${name}_Registry," >> "$OUTPUT_FILE"
 done
 echo "};" >> "$OUTPUT_FILE"
 
 echo "" >> "$OUTPUT_FILE"
-echo "// Define the __pg_registry_start and __pg_registry_end symbols" >> "$OUTPUT_FILE"
-echo "const pgRegistry_t* const __pg_registry_start = (const pgRegistry_t*)&__wasm_pg_registry[0];" >> "$OUTPUT_FILE"
-echo "const pgRegistry_t* const __pg_registry_end = (const pgRegistry_t*)&__wasm_pg_registry[$PG_COUNT];" >> "$OUTPUT_FILE"
+cat >> "$OUTPUT_FILE" << 'EOF_STRUCTS'
+// Contiguous array of registry STRUCTS (not pointers!) - initialized at startup
+// PG_FOREACH iterates with reg++ which moves by sizeof(pgRegistry_t)
+// This MUST be an array of structs, not an array of pointers
+static pgRegistry_t __wasm_pg_registry[WASM_PG_REGISTRY_COUNT];
+
+// Flag to track if registry has been initialized
+static bool __wasm_pg_registry_initialized = false;
+
+// Define the __pg_registry_start and __pg_registry_end symbols
+// These point to the contiguous struct array (after initialization)
+const pgRegistry_t* const __pg_registry_start = &__wasm_pg_registry[0];
+const pgRegistry_t* const __pg_registry_end = &__wasm_pg_registry[WASM_PG_REGISTRY_COUNT];
+
+// Initialize the contiguous registry array by copying from scattered source registries
+// This must be called early in init() before any PG_FOREACH usage
+void wasmPgRegistryInit(void)
+{
+    if (__wasm_pg_registry_initialized) {
+        return;
+    }
+
+    for (int i = 0; i < WASM_PG_REGISTRY_COUNT; i++) {
+        __wasm_pg_registry[i] = *__wasm_pg_registry_ptrs[i];
+    }
+
+    __wasm_pg_registry_initialized = true;
+}
+EOF_STRUCTS
 
 echo "" >> "$OUTPUT_FILE"
-echo "// TODO: Handle __pg_resetdata_start and __pg_resetdata_end similarly" >> "$OUTPUT_FILE"
-echo "const uint8_t __pg_resetdata_start[1] = {0};" >> "$OUTPUT_FILE"
-echo "const uint8_t __pg_resetdata_end[1] = {0};" >> "$OUTPUT_FILE"
+echo "// Stub for reset data section (not used in WASM builds)" >> "$OUTPUT_FILE"
+echo "static const uint8_t __wasm_pg_resetdata_stub[1] = {0};" >> "$OUTPUT_FILE"
+echo "const uint8_t* const __pg_resetdata_start = &__wasm_pg_resetdata_stub[0];" >> "$OUTPUT_FILE"
+echo "const uint8_t* const __pg_resetdata_end = &__wasm_pg_resetdata_stub[0];" >> "$OUTPUT_FILE"
 
 echo "" >> "$OUTPUT_FILE"
 echo "#endif // __EMSCRIPTEN__" >> "$OUTPUT_FILE"

@@ -64,9 +64,16 @@ static void processLoopback(void)
 }
 
 #ifdef __EMSCRIPTEN__
+// Debug: track main loop calls
+static uint32_t mainLoopIterationCount = 0;
+
 // WASM: Main loop iteration function (called by browser event loop)
 static void mainLoopIteration(void)
 {
+    mainLoopIterationCount++;
+    if (mainLoopIterationCount <= 5 || (mainLoopIterationCount % 1000 == 0)) {
+        EM_ASM({ console.log('[WASM DEBUG] mainLoopIteration:', $0); }, mainLoopIterationCount);
+    }
     wasmMspProcess();  // Process WASM MSP serial port
     scheduler();
     processLoopback();
@@ -76,12 +83,21 @@ static void mainLoopIteration(void)
 #if defined(SITL_BUILD)
 int main(int argc, char *argv[])
 {
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[WASM DEBUG] main() ENTERED'); });
+#endif
     parseArguments(argc, argv);
 #else
 int main(void)
 {
 #endif
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[WASM DEBUG] main() before init()'); });
+#endif
     init();
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[WASM DEBUG] main() after init()'); });
+#endif
     loopbackInit();
 
 #ifdef __EMSCRIPTEN__
@@ -89,7 +105,9 @@ int main(void)
     // This yields control back to browser after each iteration
     // 0 = run as fast as possible (browser will use requestAnimationFrame)
     // 1 = simulate infinite loop (never return from main)
+    EM_ASM({ console.log('[WASM DEBUG] main(): About to call emscripten_set_main_loop'); });
     emscripten_set_main_loop(mainLoopIteration, 0, 1);
+    EM_ASM({ console.log('[WASM DEBUG] main(): After emscripten_set_main_loop - this should not appear if simulate_infinite_loop=1'); });
 #else
     // Native: Traditional infinite loop
     while (true) {

@@ -10,6 +10,7 @@
 
 #ifdef __EMSCRIPTEN__
 
+#include <stdbool.h>
 #include "config/parameter_group.h"
 
 // External declarations for all PG registries
@@ -80,8 +81,11 @@ extern const pgRegistry_t timerOverrides_Registry;
 extern const pgRegistry_t vtxConfig_Registry;
 extern const pgRegistry_t vtxSettingsConfig_Registry;
 
-// Array of all PG registry pointers
-static const pgRegistry_t* __wasm_pg_registry[] = {
+// Number of registry entries
+#define WASM_PG_REGISTRY_COUNT 66
+
+// Array of pointers to all PG registry entries (for building contiguous array)
+static const pgRegistry_t* const __wasm_pg_registry_ptrs[WASM_PG_REGISTRY_COUNT] = {
     &accelerometerConfig_Registry,
     &adcChannelConfig_Registry,
     &adjustmentRanges_Registry,
@@ -150,9 +154,33 @@ static const pgRegistry_t* __wasm_pg_registry[] = {
     &vtxSettingsConfig_Registry,
 };
 
+// Contiguous array of registry STRUCTS (not pointers!) - initialized at startup
+// PG_FOREACH iterates with reg++ which moves by sizeof(pgRegistry_t)
+// This MUST be an array of structs, not an array of pointers
+static pgRegistry_t __wasm_pg_registry[WASM_PG_REGISTRY_COUNT];
+
+// Flag to track if registry has been initialized
+static bool __wasm_pg_registry_initialized = false;
+
 // Define the __pg_registry_start and __pg_registry_end symbols
-const pgRegistry_t* const __pg_registry_start = (const pgRegistry_t*)&__wasm_pg_registry[0];
-const pgRegistry_t* const __pg_registry_end = (const pgRegistry_t*)&__wasm_pg_registry[66];
+// These point to the contiguous struct array (after initialization)
+const pgRegistry_t* const __pg_registry_start = &__wasm_pg_registry[0];
+const pgRegistry_t* const __pg_registry_end = &__wasm_pg_registry[WASM_PG_REGISTRY_COUNT];
+
+// Initialize the contiguous registry array by copying from scattered source registries
+// This must be called early in init() before any PG_FOREACH usage
+void wasmPgRegistryInit(void)
+{
+    if (__wasm_pg_registry_initialized) {
+        return;
+    }
+
+    for (int i = 0; i < WASM_PG_REGISTRY_COUNT; i++) {
+        __wasm_pg_registry[i] = *__wasm_pg_registry_ptrs[i];
+    }
+
+    __wasm_pg_registry_initialized = true;
+}
 
 // TODO: Handle __pg_resetdata_start and __pg_resetdata_end similarly
 // For now, stub them as empty

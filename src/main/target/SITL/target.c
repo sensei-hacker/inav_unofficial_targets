@@ -445,9 +445,15 @@ void systemResetToBootloader(void)
 
 void failureMode(failureMode_e mode) {
     fprintf(stderr, "[SYSTEM] Failure mode %d\n", mode);
+#ifdef __EMSCRIPTEN__
+    // WASM: Don't loop forever - just log and continue
+    // The config will be reset to defaults
+    fprintf(stderr, "[SYSTEM] WASM: Continuing despite failure mode (config will use defaults)\n");
+#else
     while (true) {
         delay(1000);
     };
+#endif
 }
 
 // Even more dummys and stubs
