@@ -258,8 +258,6 @@ static void wasmSerialEndWrite(serialPort_t *instance)
         txBytes = wasmSerialPort.txBufferSize - wasmSerialPort.txBufferTail + wasmSerialPort.txBufferHead;
     }
 
-    EM_ASM({ console.log('[WASM DEBUG] wasmSerialEndWrite: response', $0, 'TX bytes:', $1); }, wasmSerialResponsesSent, txBytes);
-
     // Notify JavaScript that data is available (like a hardware interrupt)
     // This is called after MSP writes a complete response frame
     notifySerialDataAvailable();
@@ -284,13 +282,9 @@ void serialWriteByte(uint8_t data)
     // Ensure serial port is initialized before first use
     if (!wasmSerialInitialized) {
         wasmSerialInit();
-        EM_ASM({ console.log('[WASM DEBUG] serialWriteByte: initialized serial port'); });
     }
 
     wasmSerialBytesReceived++;
-    if (wasmSerialBytesReceived <= 10) {
-        EM_ASM({ console.log('[WASM DEBUG] serialWriteByte: received byte', $0, 'total:', $1); }, data, wasmSerialBytesReceived);
-    }
 
     serialPort_t *port = &wasmSerialPort;
     uint32_t nextHead = (port->rxBufferHead + 1) % port->rxBufferSize;
@@ -299,9 +293,8 @@ void serialWriteByte(uint8_t data)
         port->rxBuffer[port->rxBufferHead] = data;
         port->rxBufferHead = nextHead;
     } else {
-        // Buffer full - drop byte and track for debugging
+        // Buffer full - drop byte (counter available via serialGetRxDroppedBytes)
         wasmSerialRxDroppedBytes++;
-        EM_ASM({ console.log('[WASM DEBUG] serialWriteByte: RX buffer full, dropped byte'); });
     }
 }
 

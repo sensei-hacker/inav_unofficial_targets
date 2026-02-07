@@ -22,7 +22,9 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include "target/SITL/wasm_pg_registry.h"
-#define WASM_DEBUG(msg) EM_ASM({ console.log('[WASM DEBUG] init: ' + UTF8ToString($0)); }, msg)
+// Debug logging disabled for production. Uncomment to enable:
+// #define WASM_DEBUG(msg) EM_ASM({ console.log('[WASM DEBUG] init: ' + UTF8ToString($0)); }, msg)
+#define WASM_DEBUG(msg) ((void)0)
 #else
 #define WASM_DEBUG(msg) ((void)0)
 #endif

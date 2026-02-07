@@ -75,15 +75,9 @@ void wasmMspProcess(void)
 {
     if (wasmMspPort == NULL) {
         wasmMspInit();
-        EM_ASM({ console.log('[WASM DEBUG] wasmMspProcess: MSP port initialized'); });
     }
 
     wasmMspProcessCalls++;
-    if (wasmMspProcessCalls <= 5 || (wasmMspProcessCalls % 1000 == 0)) {
-        // Check if there are bytes waiting
-        uint32_t rxWaiting = serialRxBytesWaiting(wasmMspPort->port);
-        EM_ASM({ console.log('[WASM DEBUG] wasmMspProcess call', $0, 'rxWaiting:', $1); }, wasmMspProcessCalls, rxWaiting);
-    }
 
     // Use standard MSP serial processing (same as UART/TCP/UDP/BLE!)
     mspSerialProcessOnePort(wasmMspPort, MSP_SKIP_NON_MSP_DATA, mspFcProcessCommand);
