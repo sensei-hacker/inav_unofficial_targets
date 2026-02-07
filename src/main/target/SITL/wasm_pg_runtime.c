@@ -17,21 +17,27 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <emscripten.h>
 
 #include "platform.h"
 #include "config/parameter_group.h"
 #include "fc/config.h"
 
+// Log allocation failures to browser console for debugging
+#define PG_ALLOC_ERROR(pgn, bytes) \
+    EM_ASM({ console.error('[WASM PG] Allocation failed: pgn=' + $0 + ' size=' + $1); }, pgn, bytes)
+
 /**
  * Fix up a profile's current-profile pointer if it's missing or NULL.
  * Returns the current profile pointer, or NULL on allocation failure.
  */
-static void* fixupProfilePointer(pgRegistry_t *mutableReg)
+static void* fixupProfilePointer(const pgRegistry_t *reg, pgRegistry_t *mutableReg)
 {
     if (!mutableReg->ptr) {
         // Allocate the pointer variable
         uint8_t **currentPtr = (uint8_t**)calloc(1, sizeof(uint8_t*));
         if (!currentPtr) {
+            PG_ALLOC_ERROR(pgN(reg), sizeof(uint8_t*));
             return NULL;
         }
         *currentPtr = mutableReg->address;
@@ -71,7 +77,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
         if (isProfile) {
             // Ensure profile pointer is valid, fix if needed
             if (!reg->ptr || !*reg->ptr) {
-                return fixupProfilePointer((pgRegistry_t*)reg);
+                return fixupProfilePointer(reg, (pgRegistry_t*)reg);
             }
             return *reg->ptr;
         } else {
@@ -91,6 +97,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
 
         if (!storage || !copyStorage) {
             // Allocation failed - clean up partial allocation
+            PG_ALLOC_ERROR(pgN(reg), totalSize);
             free(storage);      // safe if NULL
             free(copyStorage);  // safe if NULL
             return NULL;
@@ -107,6 +114,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
             // Allocate the current profile pointer
             uint8_t **currentPtr = (uint8_t**)calloc(1, sizeof(uint8_t*));
             if (!currentPtr) {
+                PG_ALLOC_ERROR(pgN(reg), sizeof(uint8_t*));
                 free(storage);
                 free(copyStorage);
                 return NULL;
@@ -143,6 +151,7 @@ void* wasmPgEnsureAllocated(const pgRegistry_t *reg)
 
         if (!memory || !copyMemory) {
             // Clean up partial allocation
+            PG_ALLOC_ERROR(pgN(reg), regSize);
             free(memory);       // safe if NULL
             free(copyMemory);   // safe if NULL
             return NULL;
