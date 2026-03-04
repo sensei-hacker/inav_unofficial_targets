@@ -18,7 +18,7 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "RUSH"
+#define TARGET_BOARD_IDENTIFIER "BLPH"
 #define USBD_PRODUCT_STRING     "BLADE_PRO_H7"
 
 #define USE_TARGET_CONFIG
@@ -76,21 +76,21 @@
 // MPU6000
 #define USE_IMU_MPU6000
 #define IMU_MPU6000_ALIGN_2       CW270_DEG
-#define MPU6000_SPI_BUS_2         BUS_SPI1
+#define MPU6000_SPI_BUS_2         BUS_SPI4
 #define MPU6000_CS_PIN_2          SPI4_NSS_PIN
 #define MPU6000_EXTI_PIN_2        SPI4_EXTI_PIN
 
 // ICM42605/ICM42688P
 #define USE_IMU_ICM42605
 #define IMU_ICM42605_ALIGN_2       CW270_DEG
-#define ICM42605_SPI_BUS_2         BUS_SPI1
+#define ICM42605_SPI_BUS_2         BUS_SPI4
 #define ICM42605_CS_PIN_2          SPI4_NSS_PIN
 #define ICM42605_EXTI_PIN_2        SPI4_EXTI_PIN
 
 //BMI270
 #define USE_IMU_BMI270
 #define IMU_BMI270_ALIGN_2        CW270_DEG
-#define BMI270_SPI_BUS_2          BUS_SPI1
+#define BMI270_SPI_BUS_2          BUS_SPI4
 #define BMI270_CS_PIN_2           SPI4_NSS_PIN
 #define BMI270_EXTI_PIN_2         SPI4_EXTI_PIN
 
@@ -228,6 +228,6 @@
 #define TARGET_IO_PORTD 0xffff
 #define TARGET_IO_PORTE 0xffff
 
-#define MAX_PWM_OUTPUT_PORTS        15
+#define MAX_PWM_OUTPUT_PORTS        12
 #define USE_DSHOT
 #define USE_ESC_SENSOR
