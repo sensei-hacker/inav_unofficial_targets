@@ -547,6 +547,10 @@ PG_DECLARE(osdConfig_t, osdConfig);
 typedef struct displayPort_s displayPort_t;
 typedef struct displayCanvas_s displayCanvas_t;
 
+void osdDrawCustomItem(uint8_t item);
+void osdEraseCustomItem(uint8_t item);
+unsigned getCurrentLayout(void);
+
 void osdInit(displayPort_t *osdDisplayPort);
 bool osdDisplayIsPAL(void);
 void osdUpdate(timeUs_t currentTimeUs);
@@ -580,8 +584,6 @@ void osdFormatAltitudeSymbol(char *buff, int32_t alt);
 int osdFormatVelocityStr(char* buff, int32_t vel, osd_SpeedTypes_e speedType, bool _max);
 // Returns a heading angle in degrees normalized to [0, 360).
 int osdGetHeadingAngle(int angle);
-
-void osdResetWarningFlags(void);
 
 int16_t osdGetPanServoOffset(void);
 

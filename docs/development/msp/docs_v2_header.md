@@ -1,13 +1,12 @@
 
 # INAV MSP Messages reference
  
-**This page is auto-generated from the [Master INAV-MSP definition file](https://github.com/xznhj8129/msp_documentation/blob/master/msp_messages.json) (temporary link until merge)**  
+**This page is auto-generated from the [master INAV MSP definitions file](https://github.com/iNavFlight/inav/blob/master/docs/development/msp/msp_messages.json)**  
 
 For details on the structure of MSP, see [The wiki page](https://github.com/iNavFlight/inav/wiki/MSP-V2)
 
 For list of enums, see [Enum documentation page](https://github.com/iNavFlight/inav/wiki/Enums-reference)
 
-For current generation code, see [documentation project](https://github.com/xznhj8129/msp_documentation) (temporary until official implementation)  
 
 
 **JSON file rev: <file_rev>**

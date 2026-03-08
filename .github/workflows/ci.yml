@@ -107,6 +107,16 @@ jobs:
         with:
           name: targets
           path: targets.txt
+      - name: Save PR number
+        if: github.event_name == 'pull_request'
+        run: echo "${{ github.event.pull_request.number }}" > pr_number.txt
+      - name: Upload PR number
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-number
+          path: pr_number.txt
+          retention-days: 1
 
   build-SITL-Linux-arm64:
     runs-on: ubuntu-22.04-arm
@@ -256,11 +266,15 @@ jobs:
           for f in ./build_SITL/*_SITL.exe; do
             mv $f $(echo $f | sed -e 's/_[0-9]\+\.[0-9]\+\.[0-9]\+//')
           done
+      - name: Copy cygwin1.dll
+        run: cp /bin/cygwin1.dll ./build_SITL/
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BUILD_NAME }}_SITL-WIN
-          path: ./build_SITL/*.exe
+          path: |
+            ./build_SITL/*.exe
+            ./build_SITL/cygwin1.dll
 
   test:
     #needs: [build]
