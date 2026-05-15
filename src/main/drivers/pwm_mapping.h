@@ -18,6 +18,8 @@
 #pragma once
 
 #include "drivers/io_types.h"
+#include "drivers/timer.h"
+#include "drivers/pwm_output.h"
 #include "flight/mixer.h"
 #include "flight/mixer_profile.h"
 #include "flight/servos.h"
@@ -77,7 +79,22 @@ typedef struct {
     bool isDSHOT;
 } motorProtocolProperties_t;
 
+typedef struct {
+    int maxTimMotorCount;
+    int maxTimServoCount;
+    const timerHardware_t * timMotors[MAX_PWM_OUTPUTS];
+    const timerHardware_t * timServos[MAX_PWM_OUTPUTS];
+} timMotorServoHardware_t;
+
+// Output assignment types for MSP2_INAV_OUTPUT_ASSIGNMENT
+#define OUTPUT_ASSIGNMENT_TYPE_NONE  0
+#define OUTPUT_ASSIGNMENT_TYPE_MOTOR 1
+#define OUTPUT_ASSIGNMENT_TYPE_SERVO 2
+#define OUTPUT_ASSIGNMENT_TYPE_LED   3
+
 bool pwmMotorAndServoInit(void);
 const motorProtocolProperties_t * getMotorProtocolProperties(motorPwmProtocolTypes_e proto);
 pwmInitError_e getPwmInitError(void);
 const char * getPwmInitErrorMessage(void);
+const timMotorServoHardware_t *pwmGetOutputAssignment(void);
+void pwmCalculateAssignment(timMotorServoHardware_t *out, const uint8_t *proposedModes);
