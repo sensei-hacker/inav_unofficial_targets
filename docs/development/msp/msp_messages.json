@@ -11682,16 +11682,10 @@
             "reply": {
                 "payload": [
                     {
-                        "name": "mode",
+                        "name": "preset",
                         "ctype": "uint8_t",
                         "units": "",
-                        "desc": "Operating mode. See `mztcMode_e`. 0-7."
-                    },
-                    {
-                        "name": "update_rate",
-                        "ctype": "uint8_t",
-                        "units": "Hz",
-                        "desc": "Driver poll rate. 1-30. Zero is rejected because the camera task divides by it."
+                        "desc": "Purpose preset. See `mztcPreset_e`. 0 CUSTOM, 1 GENERAL, 2 FIRE, 3 SEARCH, 4 SURVEILLANCE, 5 INSPECTION, 6 MARITIME."
                     },
                     {
                         "name": "palette_mode",
@@ -11771,10 +11765,10 @@
                         "desc": "Camera state. 0 offline, 1 initializing, 2 ready, 3 capturing, 4 calibrating, 5 error, 6 alert, 7 recording."
                     },
                     {
-                        "name": "mode",
+                        "name": "preset",
                         "ctype": "uint8_t",
                         "units": "",
-                        "desc": "Operating mode currently in effect. See `mztcMode_e`."
+                        "desc": "Purpose preset currently in effect. See `mztcPreset_e`."
                     },
                     {
                         "name": "connected",
@@ -11811,16 +11805,10 @@
             "request": {
                 "payload": [
                     {
-                        "name": "mode",
+                        "name": "preset",
                         "ctype": "uint8_t",
                         "units": "",
-                        "desc": "Operating mode. See `mztcMode_e`. 0-7."
-                    },
-                    {
-                        "name": "update_rate",
-                        "ctype": "uint8_t",
-                        "units": "Hz",
-                        "desc": "Driver poll rate. 1-30. Zero is rejected because the camera task divides by it."
+                        "desc": "Purpose preset. See `mztcPreset_e`. 0 CUSTOM, 1 GENERAL, 2 FIRE, 3 SEARCH, 4 SURVEILLANCE, 5 INSPECTION, 6 MARITIME."
                     },
                     {
                         "name": "palette_mode",
@@ -11885,25 +11873,25 @@
                 ]
             },
             "reply": null,
-            "notes": "Requires `USE_MZTC`. Expects 12 bytes. The serial port and its baud rate are not in this payload. They come from the Ports tab. The whole request is validated against the `MZTC_*` limits before any field is applied. A rejected request leaves the running configuration untouched.",
+            "notes": "Requires `USE_MZTC`. Expects 11 bytes. The serial port and its baud rate are not in this payload. They come from the Ports tab. The whole request is validated against the `MZTC_*` limits before any field is applied. A rejected request leaves the running configuration untouched.",
             "description": "Writes the MassZero thermal camera configuration."
         },
-        "MSP2_SET_MZTC_MODE": {
+        "MSP2_SET_MZTC_PRESET": {
             "code": 8771,
             "mspv": 2,
             "request": {
                 "payload": [
                     {
-                        "name": "mode",
+                        "name": "preset",
                         "ctype": "uint8_t",
                         "units": "",
-                        "desc": "Operating mode. See `mztcMode_e`. 0-7."
+                        "desc": "Purpose preset. See `mztcPreset_e`. 0 CUSTOM, 1 GENERAL, 2 FIRE, 3 SEARCH, 4 SURVEILLANCE, 5 INSPECTION, 6 MARITIME."
                     }
                 ]
             },
             "reply": null,
             "notes": "Requires `USE_MZTC`. Expects 1 byte.",
-            "description": "Sets the MassZero thermal camera operating mode."
+            "description": "Applies a purpose preset to the MassZero thermal camera. A preset writes the palette, brightness, contrast, digital enhancement, both denoise levels, the shutter mode and the correction interval. CUSTOM writes nothing."
         },
         "MSP2_SET_MZTC_PALETTE": {
             "code": 8772,

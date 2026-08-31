@@ -77,24 +77,36 @@ The driver does not treat an open UART as a working camera. After it opens the p
 
 All persistent settings live in the CLI and are documented in [Settings.md](Settings.md). The `mztc_*` commands below act on the camera immediately. They do not survive a reboot on their own.
 
-### Operating mode
+### Purpose presets
+
+A preset is a named bundle of image settings for a task. Selecting one writes
+the palette, brightness, contrast, digital enhancement, both denoise levels,
+the shutter mode and the correction interval. The camera has no preset mechanism of its own. Every preset is ordinary camera commands sent by the flight controller.
 
 ```
-set mztc_mode = STANDBY
+set mztc_preset = SEARCH
 ```
 
-| Mode | Meaning |
-| --- | --- |
-| `DISABLED` | The driver holds the port and issues no periodic work |
-| `STANDBY` | Periodic status polling only. This is the default |
-| `CONTINUOUS` | Reserved. Behaves like `STANDBY` |
-| `TRIGGERED` | Reserved. Behaves like `STANDBY` |
-| `ALERT` | Reserved. Behaves like `STANDBY` |
-| `RECORDING` | Reserved. Behaves like `STANDBY` |
-| `CALIBRATION` | Reserved. Behaves like `STANDBY` |
-| `SURVEILLANCE` | Reserved. Behaves like `STANDBY` |
+| Preset | Palette | Bright | Contrast | Enhance | Spatial | Temporal | Shutter | FFC |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `CUSTOM` | writes nothing | | | | | | | |
+| `GENERAL` | White Hot | 50 | 50 | 50 | 40 | 20 | time and temp | 5 |
+| `FIRE` | Iron Red 1 | 45 | 75 | 25 | 30 | 15 | time and temp | 10 |
+| `SEARCH` | White Hot | 55 | 60 | 80 | 20 | 10 | time and temp | 3 |
+| `SURVEILLANCE` | Green Hot | 50 | 55 | 60 | 45 | 45 | time and temp | 15 |
+| `INSPECTION` | Rainbow | 50 | 45 | 70 | 55 | 35 | time and temp | 2 |
+| `MARITIME` | Black Hot | 50 | 70 | 45 | 25 | 15 | time and temp | 5 |
 
-Every reserved mode is accepted and stored. They all behave like `STANDBY` today. The camera reports no temperature over its serial protocol. `ALERT` has nothing to act on.
+`CUSTOM` is the default and writes nothing. A hand-tuned configuration stays intact. Adjusting any setting a preset owns is how you return to `CUSTOM`.
+
+Zoom and mirror are never written by a preset. Zoom belongs to the pilot.
+Mirror describes how the camera is mounted.
+
+Two constraints shape the numbers. Temporal denoising averages across frames. On a moving airframe it therefore smears targets and leaves trails. Spatial denoising trades noise for sharpness. A person at search range is only a few pixels wide. Both stay low wherever small distant targets matter. `SURVEILLANCE` is the one preset that raises temporal denoising. Loiter and hover leave little frame to frame motion for it to smear.
+
+`FIRE` keeps digital enhancement low on purpose. Enhancement lifts mid-tones. Flat mid-tones are what let an extreme hot spike dominate the image.
+
+`SEARCH` does the opposite. A clothed body sits a few degrees over ambient. Enhancement goes high to lift that small signal. Its short correction interval matters more than it looks. A drifting sensor grows fixed-pattern blobs that read as false targets.
 
 ### Image parameters
 
@@ -181,20 +193,12 @@ Point the lens at a uniform surface before running it. The camera superimposes w
 
 Bad pixel removal is not exposed. The camera drives it through an on-screen cursor that has to be walked onto each bad pixel. A flight controller cannot do that usefully.
 
-### Display options
-
-```
-set mztc_update_rate = 9
-```
-
-`mztc_update_rate` is the driver's poll rate in Hz. It accepts 1 to 30.
-
 ## CLI commands
 
 | Command | Purpose |
 | --- | --- |
 | `mztc` | Print the camera state, link quality and reported device ID |
-| `mztc_mode <0-7>` | Set the operating mode |
+| `mztc_preset <0-6>` | Apply a purpose preset. With no argument it lists them |
 | `mztc_config <brightness> <contrast> <enhancement>` | Set the three image parameters at once |
 | `mztc_palette <0-13>` | Set the colour palette |
 | `mztc_zoom <0-3>` | Set the digital zoom level |
@@ -214,10 +218,10 @@ The camera is reachable over MSP V2 in INAV's own command range. Full payload la
 
 | Command | Code | Direction | Payload |
 | --- | --- | --- | --- |
-| `MSP2_MZTC_CONFIG` | 0x2240 | Out | 15 bytes |
+| `MSP2_MZTC_CONFIG` | 0x2240 | Out | 11 bytes |
 | `MSP2_MZTC_STATUS` | 0x2241 | Out | 7 bytes |
-| `MSP2_SET_MZTC_CONFIG` | 0x2242 | In | 15 bytes |
-| `MSP2_SET_MZTC_MODE` | 0x2243 | In | 1 byte |
+| `MSP2_SET_MZTC_CONFIG` | 0x2242 | In | 11 bytes |
+| `MSP2_SET_MZTC_PRESET` | 0x2243 | In | 1 byte |
 | `MSP2_SET_MZTC_PALETTE` | 0x2244 | In | 1 byte |
 | `MSP2_SET_MZTC_ZOOM` | 0x2245 | In | 1 byte |
 | `MSP2_SET_MZTC_SHUTTER` | 0x2246 | In | 0 or 1 bytes |
@@ -239,83 +243,27 @@ The element below is an ordinary INAV OSD item. Position and enable it through t
 
 ## Application setups
 
-The camera has no preset mechanism. The setups below are ordinary CLI settings. Save them as part of a normal INAV configuration.
+The presets above cover the common tasks. Use them as a starting point, then
+adjust anything that does not suit the airframe or the conditions. Any
+adjustment moves the selection to `CUSTOM` and nothing is overwritten
+afterwards.
 
-### Fire detection
+### Rapidly changing conditions
 
-High contrast and a hot-biased palette make a heat source stand out. A short correction interval keeps the image stable as the scene heats up.
-
-```
-set mztc_palette_mode = IRON_RED_1
-set mztc_brightness = 60
-set mztc_contrast = 80
-set mztc_digital_enhancement = 70
-set mztc_spatial_denoise = 30
-set mztc_temporal_denoise = 40
-set mztc_ffc_interval = 3
-save
-```
-
-### Search and rescue
-
-Body heat is a small signal against a cool background. Denoising matters more than contrast here.
+No preset covers this. It describes a condition, where every preset describes a purpose. When
+ambient temperature moves quickly, shorten the correction interval and leave
+the shutter on its combined trigger. The cost is more shutter interruptions.
 
 ```
-set mztc_palette_mode = WHITE_HOT
-set mztc_brightness = 55
-set mztc_contrast = 65
-set mztc_digital_enhancement = 60
-set mztc_spatial_denoise = 60
-set mztc_temporal_denoise = 70
-set mztc_ffc_interval = 5
-save
-```
-
-### Surveillance
-
-A long correction interval keeps the shutter from interrupting a static scene. Heavy denoising keeps a still image clean.
-
-```
-set mztc_palette_mode = BLACK_HOT
-set mztc_brightness = 50
-set mztc_contrast = 60
-set mztc_digital_enhancement = 55
-set mztc_spatial_denoise = 70
-set mztc_temporal_denoise = 80
-set mztc_ffc_interval = 15
-save
-```
-
-### Rapidly changing environments
-
-Frequent correction keeps the image calibrated when the ambient temperature moves quickly. The cost is more shutter interruptions.
-
-```
-set mztc_palette_mode = RAINBOW
-set mztc_brightness = 50
-set mztc_contrast = 55
-set mztc_digital_enhancement = 50
-set mztc_spatial_denoise = 40
-set mztc_temporal_denoise = 30
 set mztc_auto_shutter = TIME_AND_TEMP
 set mztc_ffc_interval = 1
 save
 ```
 
-### Industrial inspection
+### What the camera cannot do
 
-Absolute temperature accuracy matters more than a pleasing image. Denoising stays low.
-
-```
-set mztc_palette_mode = FUSION_1
-set mztc_brightness = 45
-set mztc_contrast = 70
-set mztc_digital_enhancement = 65
-set mztc_spatial_denoise = 50
-set mztc_temporal_denoise = 50
-set mztc_ffc_interval = 2
-save
-```
+The camera reports no scene temperature over its serial protocol. There is no
+spot reading, no maximum in frame and no threshold alarm. A preset tunes the image for a task. It cannot detect a fire or a person. No setting here turns image tuning into detection.
 
 ## Troubleshooting
 

@@ -25,17 +25,21 @@
 #include "config/parameter_group.h"
 #include "drivers/time.h"
 
-// MassZero Thermal Camera operating modes
+// Purpose presets. A preset is a named bundle of the image settings below. It
+// is applied on the flight controller and writes ordinary camera commands. The
+// camera has no preset mechanism of its own.
+//
+// MZTC_PRESET_CUSTOM writes nothing, so a hand-tuned configuration survives.
+// Changing any setting a preset owns switches the selection back to it.
 typedef enum {
-    MZTC_MODE_DISABLED = 0,
-    MZTC_MODE_STANDBY,                 // Low power, periodic updates
-    MZTC_MODE_CONTINUOUS,              // Continuous frame capture
-    MZTC_MODE_TRIGGERED,               // Capture on demand
-    MZTC_MODE_ALERT,                   // Reserved. The camera reports no temperature to alert on
-    MZTC_MODE_RECORDING,               // High-speed recording mode
-    MZTC_MODE_CALIBRATION,             // Calibration mode
-    MZTC_MODE_SURVEILLANCE             // Long-range surveillance mode
-} mztcMode_e;
+    MZTC_PRESET_CUSTOM = 0,            // Leave every setting as the user left it
+    MZTC_PRESET_GENERAL,               // Balanced, for ordinary flying
+    MZTC_PRESET_FIRE,                  // Flat mid-tones so hot spikes dominate
+    MZTC_PRESET_SEARCH,                // Lift a small warm target out of ambient
+    MZTC_PRESET_SURVEILLANCE,          // Loiter work, where frame averaging helps
+    MZTC_PRESET_INSPECTION,            // Read gradients across a surface
+    MZTC_PRESET_MARITIME               // Warm target on a large uniform cold field
+} mztcPreset_e;
 
 // MassZero Thermal Camera color palettes
 typedef enum {
@@ -90,8 +94,6 @@ typedef enum {
 // These are the single source of truth for the valid ranges. settings.yaml
 // references them for the CLI bounds. The MSP handlers validate against them.
 // A value the CLI rejects cannot be smuggled in over MSP.
-#define MZTC_MIN_UPDATE_RATE            1       // Minimum 1 Hz
-#define MZTC_MAX_UPDATE_RATE            30      // Maximum 30 Hz
 #define MZTC_MIN_FFC_INTERVAL           1       // Minimum 1 minute
 #define MZTC_MAX_FFC_INTERVAL           60      // Maximum 60 minutes
 #define MZTC_MIN_PERCENT                0
@@ -103,8 +105,7 @@ typedef enum {
 // peripheral in INAV works. Assigning the function is what enables the camera,
 // so there is no separate enable, port or baudrate setting to keep in step.
 typedef struct mztcConfig_s {
-    uint8_t mode;                       // Operating mode
-    uint8_t update_rate;                // Driver poll rate (Hz)
+    uint8_t preset;                     // Purpose preset, see mztcPreset_e
     uint8_t palette_mode;               // Color palette
     uint8_t auto_shutter;               // Auto shutter mode
     uint8_t digital_enhancement;        // Digital enhancement (0-100)
@@ -120,7 +121,7 @@ typedef struct mztcConfig_s {
 // MassZero Thermal Camera status structure
 typedef struct mztcStatus_s {
     uint8_t status;                     // Camera status
-    uint8_t mode;                       // Current mode
+    uint8_t preset;                     // Purpose preset in effect
     bool connected;                      // Connection status
     uint8_t connection_quality;         // Connection quality indicator
     uint16_t last_calibration;          // Minutes since last calibration (saturates at UINT16_MAX)
@@ -167,7 +168,7 @@ void mztcUpdate(timeUs_t currentTimeUs);
 bool mztcIsEnabled(void);
 mztcStatus_t* mztcGetStatus(void);
 bool mztcTriggerCalibration(void);
-bool mztcSetMode(mztcMode_e mode);
+bool mztcSetPreset(mztcPreset_e preset);
 bool mztcSetPalette(mztcPaletteMode_e palette);
 bool mztcSetZoom(mztcZoomLevel_e zoom);
 bool mztcSetImageParams(uint8_t brightness, uint8_t contrast, uint8_t enhancement);

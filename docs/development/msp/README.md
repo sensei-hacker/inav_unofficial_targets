@@ -464,7 +464,7 @@ When the MSP JSON specification changes, bump `msp_messages.json` version:
 [8768 - MSP2_MZTC_CONFIG](#msp2_mztc_config)  
 [8769 - MSP2_MZTC_STATUS](#msp2_mztc_status)  
 [8770 - MSP2_SET_MZTC_CONFIG](#msp2_set_mztc_config)  
-[8771 - MSP2_SET_MZTC_MODE](#msp2_set_mztc_mode)  
+[8771 - MSP2_SET_MZTC_PRESET](#msp2_set_mztc_preset)  
 [8772 - MSP2_SET_MZTC_PALETTE](#msp2_set_mztc_palette)  
 [8773 - MSP2_SET_MZTC_ZOOM](#msp2_set_mztc_zoom)  
 [8774 - MSP2_SET_MZTC_SHUTTER](#msp2_set_mztc_shutter)  
@@ -4896,8 +4896,7 @@ When the MSP JSON specification changes, bump `msp_messages.json` version:
 **Reply Payload:**
 |Field|C Type|Size (Bytes)|Units|Description|
 |---|---|---|---|---|
-| `mode` | `uint8_t` | 1 | - | Operating mode. See `mztcMode_e`. 0-7. |
-| `update_rate` | `uint8_t` | 1 | Hz | Driver poll rate. 1-30. Zero is rejected because the camera task divides by it. |
+| `preset` | `uint8_t` | 1 | - | Purpose preset. See `mztcPreset_e`. 0 CUSTOM, 1 GENERAL, 2 FIRE, 3 SEARCH, 4 SURVEILLANCE, 5 INSPECTION, 6 MARITIME. |
 | `palette_mode` | `uint8_t` | 1 | - | Colour palette. See `mztcPaletteMode_e`. 0-13. |
 | `auto_shutter` | `uint8_t` | 1 | - | Automatic shutter policy. See `mztcShutterMode_e`. 0-2. |
 | `digital_enhancement` | `uint8_t` | 1 | % | Digital enhancement level. 0-100. |
@@ -4920,7 +4919,7 @@ When the MSP JSON specification changes, bump `msp_messages.json` version:
 |Field|C Type|Size (Bytes)|Units|Description|
 |---|---|---|---|---|
 | `status` | `uint8_t` | 1 | - | Camera state. 0 offline, 1 initializing, 2 ready, 3 capturing, 4 calibrating, 5 error, 6 alert, 7 recording. |
-| `mode` | `uint8_t` | 1 | - | Operating mode currently in effect. See `mztcMode_e`. |
+| `preset` | `uint8_t` | 1 | - | Purpose preset currently in effect. See `mztcPreset_e`. |
 | `connected` | `uint8_t` | 1 | - | Set once the camera has answered a command. Opening the serial port alone does not set it. |
 | `connection_quality` | `uint8_t` | 1 | % | Share of recent identity probes the camera answered. 0-100. |
 | `last_calibration` | `uint16_t` | 2 | minutes | Time since the last flat field correction. Saturates at 65535. |
@@ -4934,8 +4933,7 @@ When the MSP JSON specification changes, bump `msp_messages.json` version:
 **Request Payload:**
 |Field|C Type|Size (Bytes)|Units|Description|
 |---|---|---|---|---|
-| `mode` | `uint8_t` | 1 | - | Operating mode. See `mztcMode_e`. 0-7. |
-| `update_rate` | `uint8_t` | 1 | Hz | Driver poll rate. 1-30. Zero is rejected because the camera task divides by it. |
+| `preset` | `uint8_t` | 1 | - | Purpose preset. See `mztcPreset_e`. 0 CUSTOM, 1 GENERAL, 2 FIRE, 3 SEARCH, 4 SURVEILLANCE, 5 INSPECTION, 6 MARITIME. |
 | `palette_mode` | `uint8_t` | 1 | - | Colour palette. See `mztcPaletteMode_e`. 0-13. |
 | `auto_shutter` | `uint8_t` | 1 | - | Automatic shutter policy. See `mztcShutterMode_e`. 0-2. |
 | `digital_enhancement` | `uint8_t` | 1 | % | Digital enhancement level. 0-100. |
@@ -4949,15 +4947,15 @@ When the MSP JSON specification changes, bump `msp_messages.json` version:
 
 **Reply Payload:** **None**  
 
-**Notes:** Requires `USE_MZTC`. Expects 12 bytes. The serial port and its baud rate are not in this payload. They come from the Ports tab. The whole request is validated against the `MZTC_*` limits before any field is applied. A rejected request leaves the running configuration untouched.
+**Notes:** Requires `USE_MZTC`. Expects 11 bytes. The serial port and its baud rate are not in this payload. They come from the Ports tab. The whole request is validated against the `MZTC_*` limits before any field is applied. A rejected request leaves the running configuration untouched.
 
-## <a id="msp2_set_mztc_mode"></a>`MSP2_SET_MZTC_MODE (8771 / 0x2243)`
-**Description:** Sets the MassZero thermal camera operating mode.  
+## <a id="msp2_set_mztc_preset"></a>`MSP2_SET_MZTC_PRESET (8771 / 0x2243)`
+**Description:** Applies a purpose preset to the MassZero thermal camera. A preset writes the palette, brightness, contrast, digital enhancement, both denoise levels, the shutter mode and the correction interval. CUSTOM writes nothing.  
   
 **Request Payload:**
 |Field|C Type|Size (Bytes)|Description|
 |---|---|---|---|
-| `mode` | `uint8_t` | 1 | Operating mode. See `mztcMode_e`. 0-7. |
+| `preset` | `uint8_t` | 1 | Purpose preset. See `mztcPreset_e`. 0 CUSTOM, 1 GENERAL, 2 FIRE, 3 SEARCH, 4 SURVEILLANCE, 5 INSPECTION, 6 MARITIME. |
 
 **Reply Payload:** **None**  
 

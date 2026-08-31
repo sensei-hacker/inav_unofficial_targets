@@ -51,6 +51,9 @@ void mztcTestSetLastCalibration(uint16_t minutes);
 // begin, size, address, class, subclass, flags, checksum, end.
 static const uint8_t READ_MODEL_PACKET[] = { 0xF0, 0x04, 0x36, 0x74, 0x02, 0x01, 0xAD, 0xFF };
 
+// Whether the Ports tab has MZTC_CAMERA assigned to a UART.
+static bool mztcPortAssigned;
+
 class MztcFramingTest : public ::testing::Test {
 protected:
     uint8_t packet[MZTC_MAX_PACKET_LEN];
@@ -185,8 +188,7 @@ protected:
     void SetUp() override
     {
         memset(&config, 0, sizeof(config));
-        config.mode = MZTC_MODE_STANDBY;
-        config.update_rate = 9;
+        config.preset = MZTC_PRESET_CUSTOM;
         config.palette_mode = MZTC_PALETTE_WHITE_HOT;
         config.auto_shutter = MZTC_SHUTTER_TIME_AND_TEMP;
         config.digital_enhancement = 50;
@@ -207,25 +209,85 @@ TEST_F(MztcConfigValidationTest, DefaultsAreAccepted)
     EXPECT_TRUE(mztcConfigIsValid(&config));
 }
 
-// The camera task divides by update_rate. A zero here used to be a
-// divide-by-zero fault reachable from MSP.
-TEST_F(MztcConfigValidationTest, ZeroUpdateRateIsRejected)
+// Every preset value must round-trip the validator, since selecting one writes
+// these fields directly into the running configuration.
+TEST_F(MztcConfigValidationTest, EveryPresetProducesAValidConfig)
 {
-    config.update_rate = 0;
-    EXPECT_FALSE(mztcConfigIsValid(&config));
+    for (int p = MZTC_PRESET_CUSTOM; p <= MZTC_PRESET_MARITIME; p++) {
+        mztcTestReset();
+        mztcPortAssigned = true;
+        // Start from the valid baseline the parameter group resets to. Custom
+        // writes nothing, so it cannot repair a configuration that was already
+        // out of range.
+        *mztcConfigMutable() = config;
+
+        ASSERT_TRUE(mztcSetPreset((mztcPreset_e)p)) << "preset " << p;
+        EXPECT_TRUE(mztcConfigIsValid(mztcConfig())) << "preset " << p;
+        EXPECT_EQ(p, mztcConfig()->preset) << "preset " << p;
+    }
 }
 
-TEST_F(MztcConfigValidationTest, ExcessiveUpdateRateIsRejected)
+// Custom deliberately writes nothing, so it does not rescue an invalid
+// configuration. This pins that behaviour rather than leaving it implied.
+TEST_F(MztcConfigValidationTest, CustomDoesNotRepairAnInvalidConfig)
 {
-    config.update_rate = MZTC_MAX_UPDATE_RATE + 1;
-    EXPECT_FALSE(mztcConfigIsValid(&config));
+    mztcTestReset();
+    mztcPortAssigned = true;
+    memset(mztcConfigMutable(), 0, sizeof(mztcConfig_t));
+
+    ASSERT_TRUE(mztcSetPreset(MZTC_PRESET_CUSTOM));
+    EXPECT_FALSE(mztcConfigIsValid(mztcConfig()));
+}
+
+// CUSTOM is the escape hatch. It must not overwrite a hand-tuned value.
+TEST_F(MztcConfigValidationTest, CustomPresetWritesNothing)
+{
+    mztcTestReset();
+    mztcPortAssigned = true;
+    *mztcConfigMutable() = config;
+    mztcConfigMutable()->brightness = 17;
+    mztcConfigMutable()->palette_mode = MZTC_PALETTE_SEPIA;
+
+    ASSERT_TRUE(mztcSetPreset(MZTC_PRESET_CUSTOM));
+
+    EXPECT_EQ(17, mztcConfig()->brightness);
+    EXPECT_EQ(MZTC_PALETTE_SEPIA, mztcConfig()->palette_mode);
+}
+
+// A named preset must actually change the owned settings, and must leave the
+// two it does not own alone.
+TEST_F(MztcConfigValidationTest, PresetWritesOwnedFieldsAndSparesTheRest)
+{
+    mztcTestReset();
+    mztcPortAssigned = true;
+    *mztcConfigMutable() = config;
+    mztcConfigMutable()->zoom_level = MZTC_ZOOM_4X;
+    mztcConfigMutable()->mirror_mode = MZTC_MIRROR_VERTICAL;
+
+    ASSERT_TRUE(mztcSetPreset(MZTC_PRESET_FIRE));
+
+    EXPECT_EQ(MZTC_PALETTE_IRON_RED_1, mztcConfig()->palette_mode);
+    EXPECT_EQ(75, mztcConfig()->contrast);
+    EXPECT_EQ(25, mztcConfig()->digital_enhancement);
+    EXPECT_EQ(10, mztcConfig()->ffc_interval);
+
+    // Zoom belongs to the pilot, mirror to the airframe.
+    EXPECT_EQ(MZTC_ZOOM_4X, mztcConfig()->zoom_level);
+    EXPECT_EQ(MZTC_MIRROR_VERTICAL, mztcConfig()->mirror_mode);
+}
+
+TEST_F(MztcConfigValidationTest, OutOfRangePresetIsRejected)
+{
+    mztcTestReset();
+    mztcPortAssigned = true;
+    EXPECT_FALSE(mztcSetPreset((mztcPreset_e)(MZTC_PRESET_MARITIME + 1)));
 }
 
 TEST_F(MztcConfigValidationTest, EnumsAreBounded)
 {
-    config.mode = MZTC_MODE_SURVEILLANCE + 1;
+    config.preset = MZTC_PRESET_MARITIME + 1;
     EXPECT_FALSE(mztcConfigIsValid(&config));
-    config.mode = MZTC_MODE_SURVEILLANCE;
+    config.preset = MZTC_PRESET_MARITIME;
 
     config.palette_mode = MZTC_PALETTE_RED_HOT + 1;
     EXPECT_FALSE(mztcConfigIsValid(&config));
@@ -307,8 +369,6 @@ TEST_F(MztcConfigValidationTest, NullConfigIsRejected)
 static std::vector<uint8_t> txBytes;
 static timeMs_t fakeNow;
 
-// Whether the Ports tab has MZTC_CAMERA assigned to a UART.
-static bool mztcPortAssigned;
 
 class MztcLinkTest : public ::testing::Test {
 protected:
@@ -320,8 +380,7 @@ protected:
 
         mztcConfig_t *cfg = mztcConfigMutable();
         memset(cfg, 0, sizeof(*cfg));
-        cfg->mode = MZTC_MODE_STANDBY;
-        cfg->update_rate = 9;
+        cfg->preset = MZTC_PRESET_CUSTOM;
         cfg->palette_mode = MZTC_PALETTE_WHITE_HOT;
         cfg->auto_shutter = MZTC_SHUTTER_TIME_AND_TEMP;
         cfg->digital_enhancement = 50;

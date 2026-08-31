@@ -45,7 +45,7 @@
 
 // In (host to flight controller)
 #define MSP2_SET_MZTC_CONFIG            0x2242
-#define MSP2_SET_MZTC_MODE              0x2243
+#define MSP2_SET_MZTC_PRESET            0x2243
 #define MSP2_SET_MZTC_PALETTE           0x2244
 #define MSP2_SET_MZTC_ZOOM              0x2245
 #define MSP2_SET_MZTC_SHUTTER           0x2246
@@ -56,10 +56,9 @@
 /*
  * Payload layouts
  *
- * MSP2_MZTC_CONFIG (out) and MSP2_SET_MZTC_CONFIG (in), 12 bytes.
+ * MSP2_MZTC_CONFIG (out) and MSP2_SET_MZTC_CONFIG (in), 11 bytes.
  * The port and its baud rate are not here. They come from the Ports tab.
- *   u8  mode
- *   u8  update_rate
+ *   u8  preset
  *   u8  palette_mode
  *   u8  auto_shutter
  *   u8  digital_enhancement
@@ -73,13 +72,13 @@
  *
  * MSP2_MZTC_STATUS (out), 7 bytes:
  *   u8  status
- *   u8  mode
+ *   u8  preset
  *   u8  connected
  *   u8  connection_quality
  *   u16 last_calibration       (minutes)
  *   u8  error_flags
  *
- * MSP2_SET_MZTC_MODE     (in), 1 byte: u8 mode
+ * MSP2_SET_MZTC_PRESET   (in), 1 byte: u8 preset
  * MSP2_SET_MZTC_PALETTE  (in), 1 byte: u8 palette
  * MSP2_SET_MZTC_ZOOM     (in), 1 byte: u8 zoom_level
  * MSP2_SET_MZTC_SHUTTER  (in), 0 or 1 bytes. Triggers a manual shutter cycle,
@@ -94,7 +93,7 @@
  *                        action and never a stored setting.
  */
 
-#define MSP2_MZTC_CONFIG_PAYLOAD_SIZE           12
+#define MSP2_MZTC_CONFIG_PAYLOAD_SIZE           11
 #define MSP2_MZTC_STATUS_PAYLOAD_SIZE           7
 #define MSP2_SET_MZTC_IMAGE_PARAMS_PAYLOAD_SIZE 3
 #define MSP2_SET_MZTC_CORRECTION_PAYLOAD_SIZE   2

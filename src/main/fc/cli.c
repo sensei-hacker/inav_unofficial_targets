@@ -159,7 +159,7 @@ static void cliAssert(char *cmdline);
 
 #ifdef USE_MZTC
 static void cliMztc(char *cmdline);
-static void cliMztcMode(char *cmdline);
+static void cliMztcPreset(char *cmdline);
 static void cliMztcConfig(char *cmdline);
 static void cliMztcPalette(char *cmdline);
 static void cliMztcZoom(char *cmdline);
@@ -4965,6 +4965,10 @@ static void printBootLog(char *cmdline __attribute__((unused))) {
 // Bounds come from the MZTC_* limits in config/mztc_camera.h. settings.yaml
 // and the MSP handlers use the same values. Every entry point accepts exactly
 // the same range.
+static const char * const mztcPresetNames[] = {
+    "CUSTOM", "GENERAL", "FIRE", "SEARCH", "SURVEILLANCE", "INSPECTION", "MARITIME"
+};
+
 static void cliMztc(char *cmdline)
 {
     UNUSED(cmdline);
@@ -4979,7 +4983,8 @@ static void cliMztc(char *cmdline)
     cliPrintLine("MassZero Thermal Camera status:");
     cliPrintLinef("  Connected: %s", status->connected ? "YES" : "NO");
     cliPrintLinef("  State: %u", status->status);
-    cliPrintLinef("  Mode: %u", status->mode);
+    cliPrintLinef("  Preset: %u (%s)", status->preset,
+                  status->preset < ARRAYLEN(mztcPresetNames) ? mztcPresetNames[status->preset] : "?");
     cliPrintLinef("  Link quality: %u%%", status->connection_quality);
 
     uint8_t idLen = 0;
@@ -4998,23 +5003,31 @@ static void cliMztc(char *cmdline)
     cliPrintLinef("  Error flags: 0x%02X", status->error_flags);
 }
 
-static void cliMztcMode(char *cmdline)
+static void cliMztcPreset(char *cmdline)
 {
     if (isEmpty(cmdline)) {
-        cliPrintLinef("Current mode: %u", mztcGetStatus()->mode);
+        const uint8_t current = mztcGetStatus()->preset;
+        cliPrintLinef("Current preset: %u (%s)", current,
+                      current < ARRAYLEN(mztcPresetNames) ? mztcPresetNames[current] : "?");
+        for (unsigned i = 0; i < ARRAYLEN(mztcPresetNames); i++) {
+            cliPrintLinef("  %u %s", i, mztcPresetNames[i]);
+        }
         return;
     }
 
-    const int mode = fastA2I(cmdline);
-    if (mode < 0 || mode > MZTC_MODE_SURVEILLANCE) {
-        cliPrintLinef("Invalid mode. Use 0-%d", MZTC_MODE_SURVEILLANCE);
+    const int preset = fastA2I(cmdline);
+    if (preset < 0 || preset > MZTC_PRESET_MARITIME) {
+        cliPrintLinef("Invalid preset. Use 0-%d", MZTC_PRESET_MARITIME);
         return;
     }
 
-    if (mztcSetMode((mztcMode_e)mode)) {
-        cliPrintLinef("Mode set to %d", mode);
+    if (mztcSetPreset((mztcPreset_e)preset)) {
+        cliPrintLinef("Preset set to %d (%s)", preset, mztcPresetNames[preset]);
+        if (preset != MZTC_PRESET_CUSTOM) {
+            cliPrintLine("Palette, brightness, contrast, enhancement, denoise, shutter and interval updated");
+        }
     } else {
-        cliPrintLine("Failed to set mode");
+        cliPrintLine("Failed to set preset");
     }
 }
 
@@ -5290,12 +5303,13 @@ const clicmd_t cmdTable[] = {
 #ifdef USE_MZTC
     CLI_COMMAND_DEF("mztc", "MassZero Thermal Camera status", NULL, cliMztc),
     CLI_COMMAND_DEF("mztc_calibrate", "trigger a manual shutter / flat field correction", NULL, cliMztcCalibrate),
-    CLI_COMMAND_DEF("mztc_config", "configure camera parameters", "[brightness] [contrast] [enhancement]", cliMztcConfig),
+    CLI_COMMAND_DEF("mztc_config", "configure camera parameters, each 0-100", "[brightness] [contrast] [enhancement]", cliMztcConfig),
     CLI_COMMAND_DEF("mztc_defaults", "restore the camera to its factory defaults", NULL, cliMztcDefaults),
     CLI_COMMAND_DEF("mztc_denoise", "set denoising parameters", "[spatial] [temporal]", cliMztcDenoise),
     CLI_COMMAND_DEF("mztc_enhancement", "set digital enhancement", "[value]", cliMztcEnhancement),
-    CLI_COMMAND_DEF("mztc_mode", "set operating mode", "[mode]", cliMztcMode),
     CLI_COMMAND_DEF("mztc_palette", "set color palette", "[palette]", cliMztcPalette),
+    CLI_COMMAND_DEF("mztc_preset", "apply a purpose preset", "[preset]", cliMztcPreset),
+    CLI_COMMAND_DEF("mztc_reconnect", "force a reconnect to the camera", NULL, cliMztcReconnect),
     CLI_COMMAND_DEF("mztc_save", "save the current settings to the camera flash", NULL, cliMztcSave),
     CLI_COMMAND_DEF("mztc_vignetting", "run one vignetting correction", NULL, cliMztcVignetting),
     CLI_COMMAND_DEF("mztc_zoom", "set zoom level", "[level]", cliMztcZoom),
@@ -5359,7 +5373,6 @@ const clicmd_t cmdTable[] = {
 #endif
     CLI_COMMAND_DEF("timer_output_mode", "get or set the outputmode for a given timer.",  "[<timer> [<AUTO|MOTORS|SERVOS|LED|PINIO|BEEPER>]]", cliTimerOutputMode),
 #ifdef USE_MZTC
-    CLI_COMMAND_DEF("mztc_reconnect", "Force MZTC reconnection", NULL, cliMztcReconnect),
 #endif
 };
 

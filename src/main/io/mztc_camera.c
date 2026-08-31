@@ -92,8 +92,6 @@
 // validates against the first. The CLI and the generated docs use the second.
 // These assertions turn any divergence into a build failure. Without them the
 // CLI could reject a value that MSP still accepts.
-STATIC_ASSERT(MZTC_MIN_UPDATE_RATE == SETTING_MZTC_UPDATE_RATE_MIN, mztc_update_rate_min_mismatch);
-STATIC_ASSERT(MZTC_MAX_UPDATE_RATE == SETTING_MZTC_UPDATE_RATE_MAX, mztc_update_rate_max_mismatch);
 STATIC_ASSERT(MZTC_MIN_FFC_INTERVAL == SETTING_MZTC_FFC_INTERVAL_MIN, mztc_ffc_interval_min_mismatch);
 STATIC_ASSERT(MZTC_MAX_FFC_INTERVAL == SETTING_MZTC_FFC_INTERVAL_MAX, mztc_ffc_interval_max_mismatch);
 STATIC_ASSERT(MZTC_MIN_PERCENT == SETTING_MZTC_BRIGHTNESS_MIN, mztc_percent_min_mismatch);
@@ -142,16 +140,16 @@ static uint8_t mztcRxExpected = 0;
 // The defaults come from the SETTING_*_DEFAULT macros that the settings
 // generator emits from settings.yaml. The CLI defaults and the fresh-EEPROM
 // defaults cannot drift apart.
-// Version 1 because the struct changed shape after the PR test builds went
-// out. It lost the five unused RC channel fields, the temperature settings and
-// the crosshair flag, and last_calibration widened. Anyone who flashed one of
-// those builds has a version 0 record whose field offsets no longer line up.
-// The version bump makes them fall back to defaults.
-PG_REGISTER_WITH_RESET_TEMPLATE(mztcConfig_t, mztcConfig, PG_MZTC_CAMERA_CONFIG, 1);
+// Version 2. Version 1 dropped the five unused RC channel fields, the
+// temperature settings and the crosshair flag, and widened last_calibration.
+// Version 2 replaces the inert mode field with preset and removes update_rate,
+// which shifts every field after the first byte. An older record read at the
+// new offsets would apply garbage to real camera settings, so the bump makes
+// it fall back to defaults instead.
+PG_REGISTER_WITH_RESET_TEMPLATE(mztcConfig_t, mztcConfig, PG_MZTC_CAMERA_CONFIG, 2);
 
 PG_RESET_TEMPLATE(mztcConfig_t, mztcConfig,
-    .mode = SETTING_MZTC_MODE_DEFAULT,
-    .update_rate = SETTING_MZTC_UPDATE_RATE_DEFAULT,
+    .preset = SETTING_MZTC_PRESET_DEFAULT,
     .palette_mode = SETTING_MZTC_PALETTE_MODE_DEFAULT,
     .auto_shutter = SETTING_MZTC_AUTO_SHUTTER_DEFAULT,
     .digital_enhancement = SETTING_MZTC_DIGITAL_ENHANCEMENT_DEFAULT,
@@ -518,7 +516,7 @@ void mztcInit(void)
 
     memset(&mztcStatus, 0, sizeof(mztcStatus));
     mztcStatus.status = MZTC_STATUS_OFFLINE;
-    mztcStatus.mode = mztcConfig()->mode;
+    mztcStatus.preset = mztcConfig()->preset;
     mztcStatus.connected = false;
 
     mztcInitialized = true;
@@ -572,10 +570,6 @@ void mztcUpdate(timeUs_t currentTimeUs)
         mztcSendConfiguration();
     }
 
-    const uint8_t rate = constrain(mztcConfig()->update_rate, MZTC_MIN_UPDATE_RATE, MZTC_MAX_UPDATE_RATE);
-    if ((now - mztcLastUpdateTime) < (1000u / rate)) {
-        return;
-    }
     mztcLastUpdateTime = now;
 
     // A periodic probe both feeds the receive timeout and measures link quality.
@@ -586,7 +580,7 @@ void mztcUpdate(timeUs_t currentTimeUs)
 
     mztcCheckCalibration();
 
-    mztcStatus.mode = mztcConfig()->mode;
+    mztcStatus.preset = mztcConfig()->preset;
 }
 
 bool mztcIsConnected(void)
@@ -629,14 +623,90 @@ bool mztcTriggerCalibration(void)
     return false;
 }
 
-bool mztcSetMode(mztcMode_e mode)
+// The settings a preset owns. Zoom and mirror are deliberately absent: zoom
+// belongs to the pilot and mirror describes how the camera is mounted, so a
+// preset that overwrote either would fight the operator.
+typedef struct mztcPresetValues_s {
+    uint8_t palette_mode;
+    uint8_t brightness;
+    uint8_t contrast;
+    uint8_t digital_enhancement;
+    uint8_t spatial_denoise;
+    uint8_t temporal_denoise;
+    uint8_t auto_shutter;
+    uint8_t ffc_interval;
+} mztcPresetValues_t;
+
+// Two constraints shape every row. Temporal denoising averages across frames,
+// so on a moving airframe it smears targets and leaves trails. Spatial
+// denoising trades noise for sharpness, and a person at search range is only a
+// few pixels wide. Both stay low wherever small distant targets matter.
+//
+// Indexed by mztcPreset_e. MZTC_PRESET_CUSTOM has no row because it writes
+// nothing.
+static const mztcPresetValues_t mztcPresets[] = {
+    [MZTC_PRESET_GENERAL] = {
+        MZTC_PALETTE_WHITE_HOT, 50, 50, 50, 40, 20, MZTC_SHUTTER_TIME_AND_TEMP, 5
+    },
+    [MZTC_PRESET_FIRE] = {
+        // Low enhancement is the important value here. Enhancement lifts
+        // mid-tones, and flat mid-tones are what let an extreme spike dominate.
+        MZTC_PALETTE_IRON_RED_1, 45, 75, 25, 30, 15, MZTC_SHUTTER_TIME_AND_TEMP, 10
+    },
+    [MZTC_PRESET_SEARCH] = {
+        // A clothed body sits a few degrees over ambient, so enhancement goes
+        // high. Both denoise values drop to keep a few-pixel target alive. The
+        // short correction interval matters more than it looks, because a
+        // drifting sensor grows fixed-pattern blobs that read as false targets.
+        MZTC_PALETTE_WHITE_HOT, 55, 60, 80, 20, 10, MZTC_SHUTTER_TIME_AND_TEMP, 3
+    },
+    [MZTC_PRESET_SURVEILLANCE] = {
+        // The one case where temporal denoising earns its keep. Loiter and
+        // hover mean little frame to frame motion, so averaging cleans rather
+        // than smears.
+        MZTC_PALETTE_GREEN_HOT, 50, 55, 60, 45, 45, MZTC_SHUTTER_TIME_AND_TEMP, 15
+    },
+    [MZTC_PRESET_INSPECTION] = {
+        // Comparing one panel cell against its neighbour is a uniformity
+        // problem, hence the shortest correction interval in the set.
+        MZTC_PALETTE_RAINBOW, 50, 45, 70, 55, 35, MZTC_SHUTTER_TIME_AND_TEMP, 2
+    },
+    [MZTC_PRESET_MARITIME] = {
+        // A uniform cold background takes high contrast well. Enhancement
+        // stays moderate because raising it amplifies wave texture into
+        // clutter.
+        MZTC_PALETTE_BLACK_HOT, 50, 70, 45, 25, 15, MZTC_SHUTTER_TIME_AND_TEMP, 5
+    },
+};
+
+bool mztcSetPreset(mztcPreset_e preset)
 {
-    if (!mztcIsEnabled() || mode > MZTC_MODE_SURVEILLANCE) {
+    if (!mztcIsEnabled() || preset > MZTC_PRESET_MARITIME) {
         return false;
     }
 
-    mztcConfigMutable()->mode = mode;
-    mztcStatus.mode = mode;
+    mztcConfig_t *cfg = mztcConfigMutable();
+    cfg->preset = preset;
+    mztcStatus.preset = preset;
+
+    // Custom keeps whatever the user configured.
+    if (preset == MZTC_PRESET_CUSTOM) {
+        return true;
+    }
+
+    const mztcPresetValues_t *v = &mztcPresets[preset];
+    cfg->palette_mode = v->palette_mode;
+    cfg->brightness = v->brightness;
+    cfg->contrast = v->contrast;
+    cfg->digital_enhancement = v->digital_enhancement;
+    cfg->spatial_denoise = v->spatial_denoise;
+    cfg->temporal_denoise = v->temporal_denoise;
+    cfg->auto_shutter = v->auto_shutter;
+    cfg->ffc_interval = v->ffc_interval;
+
+    // Push the whole set on the next task run rather than writing here, so the
+    // burst stays out of whatever context called this.
+    mztcConfigurationPending = true;
     return true;
 }
 
@@ -722,15 +792,11 @@ bool mztcConfigIsValid(const mztcConfig_t *cfg)
         return false;
     }
 
-    if (cfg->mode > MZTC_MODE_SURVEILLANCE ||
+    if (cfg->preset > MZTC_PRESET_MARITIME ||
         cfg->palette_mode > MZTC_PALETTE_RED_HOT ||
         cfg->auto_shutter > MZTC_SHUTTER_TIME_AND_TEMP ||
         cfg->zoom_level > MZTC_ZOOM_8X ||
         cfg->mirror_mode > MZTC_MIRROR_CENTRAL) {
-        return false;
-    }
-
-    if (cfg->update_rate < MZTC_MIN_UPDATE_RATE || cfg->update_rate > MZTC_MAX_UPDATE_RATE) {
         return false;
     }
 

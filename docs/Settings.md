@@ -3584,23 +3584,6 @@ Image mirroring mode
 
 ---
 
-### mztc_mode
-
-Operating mode for MassZero Thermal Camera
-
-| Allowed Values |  |
-| --- | --- |
-| DISABLED |  |
-| STANDBY | Default |
-| CONTINUOUS |  |
-| TRIGGERED |  |
-| ALERT |  |
-| RECORDING |  |
-| CALIBRATION |  |
-| SURVEILLANCE |  |
-
----
-
 ### mztc_palette_mode
 
 Color palette mode
@@ -3624,6 +3607,22 @@ Color palette mode
 
 ---
 
+### mztc_preset
+
+Purpose preset for the MassZero Thermal Camera. Selecting one writes the palette, brightness, contrast, enhancement, denoise, shutter mode and correction interval. CUSTOM writes nothing and keeps hand-tuned values
+
+| Allowed Values |  |
+| --- | --- |
+| CUSTOM | Default |
+| GENERAL |  |
+| FIRE |  |
+| SEARCH |  |
+| SURVEILLANCE |  |
+| INSPECTION |  |
+| MARITIME |  |
+
+---
+
 ### mztc_spatial_denoise
 
 Spatial denoising level (0-100)
@@ -3641,16 +3640,6 @@ Temporal denoising level (0-100)
 | Default | Min | Max |
 | --- | --- | --- |
 | 50 | 0 | 100 |
-
----
-
-### mztc_update_rate
-
-Frame update rate in Hz
-
-| Default | Min | Max |
-| --- | --- | --- |
-| 9 | 1 | 30 |
 
 ---
 

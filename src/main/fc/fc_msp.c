@@ -2000,8 +2000,7 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
         {
             const mztcConfig_t *cfg = mztcConfig();
 
-            sbufWriteU8(dst, cfg->mode);
-            sbufWriteU8(dst, cfg->update_rate);
+            sbufWriteU8(dst, cfg->preset);
             sbufWriteU8(dst, cfg->palette_mode);
             sbufWriteU8(dst, cfg->auto_shutter);
             sbufWriteU8(dst, cfg->digital_enhancement);
@@ -2020,7 +2019,7 @@ static bool mspFcProcessOutCommand(uint16_t cmdMSP, sbuf_t *dst, mspPostProcessF
             const mztcStatus_t *status = mztcGetStatus();
 
             sbufWriteU8(dst, status->status);
-            sbufWriteU8(dst, status->mode);
+            sbufWriteU8(dst, status->preset);
             sbufWriteU8(dst, status->connected ? 1 : 0);
             sbufWriteU8(dst, status->connection_quality);
             sbufWriteU16(dst, status->last_calibration);
@@ -4021,8 +4020,7 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
         if (dataSize == MSP2_MZTC_CONFIG_PAYLOAD_SIZE) {
             mztcConfig_t candidate;
 
-            candidate.mode = sbufReadU8(src);
-            candidate.update_rate = sbufReadU8(src);
+            candidate.preset = sbufReadU8(src);
             candidate.palette_mode = sbufReadU8(src);
             candidate.auto_shutter = sbufReadU8(src);
             candidate.digital_enhancement = sbufReadU8(src);
@@ -4034,9 +4032,8 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
             candidate.mirror_mode = sbufReadU8(src);
             candidate.ffc_interval = sbufReadU8(src);
 
-            // This rejects an update_rate of zero. The camera task would
-            // otherwise use it as a divisor. It also rejects a baudrate that
-            // would index past baudRates[].
+            // Every enum and percentage is range checked here, so a value the
+            // CLI would reject cannot be smuggled in over MSP.
             if (!mztcConfigIsValid(&candidate)) {
                 return MSP_RESULT_ERROR;
             }
@@ -4047,9 +4044,9 @@ static mspResult_e mspFcProcessInCommand(uint16_t cmdMSP, sbuf_t *src)
         }
         break;
 
-    case MSP2_SET_MZTC_MODE:
+    case MSP2_SET_MZTC_PRESET:
         if (dataSize == 1) {
-            if (!mztcSetMode((mztcMode_e)sbufReadU8(src))) {
+            if (!mztcSetPreset((mztcPreset_e)sbufReadU8(src))) {
                 return MSP_RESULT_ERROR;
             }
         } else {
