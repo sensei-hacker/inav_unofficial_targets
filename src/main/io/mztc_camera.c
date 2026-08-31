@@ -37,6 +37,7 @@
 
 #include "io/serial.h"
 #include "io/mztc_camera.h"
+#include "fc/rc_modes.h"
 
 #ifdef USE_MZTC
 
@@ -124,6 +125,9 @@ static uint8_t mztcProbesAnswered = 0;
 // Set when the camera first answers, consumed by the task so that the
 // configuration burst never runs in interrupt context.
 static bool mztcConfigurationPending = false;
+// Previous state of the THERMAL CALIBRATE switch. The correction runs on the
+// rising edge only, so holding the switch does not fire it every task tick.
+static bool mztcCalibrateBoxWasActive = false;
 
 // Device identity, filled in from the model and version replies
 static uint8_t mztcDeviceModel[MZTC_MAX_DATA_LEN];
@@ -577,6 +581,15 @@ void mztcUpdate(timeUs_t currentTimeUs)
         mztcSendProbe();
     }
     mztcUpdateConnectionQuality();
+
+    // A rising edge on the switch triggers one flat field correction. The
+    // camera closes its own shutter as the reference, so this is safe to fire
+    // at any time and in any attitude.
+    const bool calibrateBoxActive = IS_RC_MODE_ACTIVE(BOXMZTCCALIBRATE);
+    if (calibrateBoxActive && !mztcCalibrateBoxWasActive) {
+        mztcTriggerCalibration();
+    }
+    mztcCalibrateBoxWasActive = calibrateBoxActive;
 
     mztcCheckCalibration();
 

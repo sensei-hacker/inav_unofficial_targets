@@ -193,6 +193,39 @@ Point the lens at a uniform surface before running it. The camera superimposes w
 
 Bad pixel removal is not exposed. The camera drives it through an on-screen cursor that has to be walked onto each bad pixel. A flight controller cannot do that usefully.
 
+## Switches and in-flight adjustment
+
+Both appear in the configurator's Modes tab automatically. Neither is offered
+until the camera has a UART assigned in the Ports tab.
+
+### THERMAL CALIBRATE
+
+A box mode that runs one flat field correction on the rising edge of the
+switch. Holding the switch does not repeat it.
+
+This is safe to fire at any time. The correction uses the camera's own internal shutter as its reference. The sensor cannot see the scene while it runs, and where the aircraft is pointing does not matter. The camera already
+performs the same correction on its own timer. The only cost is roughly a
+second of frozen image.
+
+### MZTC_ZOOM
+
+An in-flight adjustment that steps the digital zoom through 1x, 2x, 4x and 8x.
+Assign it like any other adjustment, described in
+[Inflight Adjustments.md](Inflight%20Adjustments.md). It is function 61.
+
+The adjustment writes the camera and the stored setting together. The switch position and the saved zoom level therefore still agree after a reconnect.
+
+### What is deliberately not on a switch
+
+`mztc_vignetting` stays a CLI command. Vignetting correction has no protective
+shutter and captures whatever the lens is pointed at. The camera manual is explicit. The lens must face a uniform surface first. Otherwise the current scene is superimposed on every later image. Running it by accident
+from a switch would leave a ghost over the picture.
+
+It is recoverable. `mztc_defaults` restores the camera and clears it.
+
+The bad pixel commands and manual background correction are not implemented at
+all, for the same reason.
+
 ## CLI commands
 
 | Command | Purpose |
