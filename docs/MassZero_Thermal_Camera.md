@@ -97,7 +97,16 @@ set mztc_preset = SEARCH
 | `INSPECTION` | Rainbow | 50 | 45 | 70 | 55 | 35 | time and temp | 2 |
 | `MARITIME` | Black Hot | 50 | 70 | 45 | 25 | 15 | time and temp | 5 |
 
-`CUSTOM` is the default and writes nothing. A hand-tuned configuration stays intact. Adjusting any setting a preset owns is how you return to `CUSTOM`.
+`CUSTOM` is the default and writes nothing. A hand-tuned configuration stays
+intact. Adjusting any setting a preset owns is how you return to `CUSTOM`.
+
+Every route to the setting applies it. `set mztc_preset = SEARCH`, the
+`mztc_preset` CLI command, the configurator dropdown and
+`MSP2_SET_MZTC_PRESET` all write the same eight values. A preset selected
+with `set` takes effect on the next driver tick.
+
+A reboot does not reapply. The saved values already reflect the saved
+preset. Reapplying at boot would discard any tuning done afterwards.
 
 Zoom and mirror are never written by a preset. Zoom belongs to the pilot.
 Mirror describes how the camera is mounted.

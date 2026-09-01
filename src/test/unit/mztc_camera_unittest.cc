@@ -27,6 +27,9 @@ extern "C" {
 #include "common/utils.h"
 #include "config/mztc_camera.h"
 #include "io/mztc_camera.h"
+// The driver reads the THERMAL CALIBRATE switch, so the test provides
+// IS_RC_MODE_ACTIVE and needs the box id enum.
+#include "fc/rc_modes.h"
 
 // Driver internals the receive-path tests drive directly. These are static in
 // production builds and visible here through STATIC_UNIT_TESTED.
@@ -35,6 +38,7 @@ void mztcSendConfiguration(void);
 
 // Test hooks defined in the driver under UNIT_TEST.
 void mztcTestReset(void);
+void mztcTestForceReinit(void);
 void mztcTestSetStatus(uint8_t status);
 void mztcTestSetLastCalibration(uint16_t minutes);
 }
@@ -53,6 +57,10 @@ static const uint8_t READ_MODEL_PACKET[] = { 0xF0, 0x04, 0x36, 0x74, 0x02, 0x01,
 
 // Whether the Ports tab has MZTC_CAMERA assigned to a UART.
 static bool mztcPortAssigned;
+
+// Whether the THERMAL CALIBRATE switch is held. The driver triggers one flat
+// field correction on the rising edge.
+static bool mztcCalibrateBoxActive;
 
 class MztcFramingTest : public ::testing::Test {
 protected:
@@ -377,6 +385,7 @@ protected:
         txBytes.clear();
         fakeNow = 1000;
         mztcPortAssigned = true;
+        mztcCalibrateBoxActive = false;
 
         mztcConfig_t *cfg = mztcConfigMutable();
         memset(cfg, 0, sizeof(*cfg));
@@ -430,6 +439,24 @@ protected:
             i += len;
         }
         return NULL;
+    }
+
+    // How many transmitted packets carry the given class and subclass. Used to
+    // prove an action fires once rather than on every task tick.
+    size_t countTx(uint8_t classCmd, uint8_t subCmd) const
+    {
+        size_t i = 0, found = 0;
+        while (i + MZTC_MIN_PACKET_LEN <= txBytes.size()) {
+            const uint8_t len = (uint8_t)(txBytes[i + 1] + 4);
+            if (i + len > txBytes.size()) {
+                break;
+            }
+            if (txBytes[i + 3] == classCmd && txBytes[i + 4] == subCmd) {
+                found++;
+            }
+            i += len;
+        }
+        return found;
     }
 };
 
@@ -568,6 +595,74 @@ TEST_F(MztcLinkTest, AnAnswerPromotesTheLinkToConnected)
 
 // Assigning the function in the Ports tab is what enables the camera. There is
 // no separate enable setting to fall out of step with it.
+// "set mztc_preset = SEARCH" writes the byte and nothing else. The task has to
+// notice and apply it, otherwise the setting records a label that does not
+// match the values in effect. That is the defect the old mode enum had.
+// The calibrate switch fires once per flip. Holding it must not stream shutter
+// commands at the camera on every task tick.
+TEST_F(MztcLinkTest, TheCalibrateSwitchFiresOnceOnTheRisingEdge)
+{
+    mztcUpdate(0);
+    feedReply(0x74, 0x02, 0x03);
+    mztcUpdate(0);
+    txBytes.clear();
+
+    mztcCalibrateBoxActive = true;
+    mztcUpdate(0);
+    const size_t afterFirst = countTx(0x7C, 0x02);
+    EXPECT_EQ(1u, afterFirst);
+
+    // Still held. No further corrections.
+    mztcUpdate(0);
+    mztcUpdate(0);
+    EXPECT_EQ(afterFirst, countTx(0x7C, 0x02));
+
+    // Released and flipped again. One more.
+    mztcCalibrateBoxActive = false;
+    mztcUpdate(0);
+    mztcCalibrateBoxActive = true;
+    mztcUpdate(0);
+    EXPECT_EQ(afterFirst + 1, countTx(0x7C, 0x02));
+}
+
+TEST_F(MztcLinkTest, APresetWrittenAsASettingIsAppliedByTheTask)
+{
+    mztcUpdate(0);
+    feedReply(0x74, 0x02, 0x03);
+    ASSERT_TRUE(mztcGetStatus()->connected);
+    mztcUpdate(0);
+
+    // Write the field directly, the way the settings framework does.
+    mztcConfigMutable()->preset = MZTC_PRESET_FIRE;
+    mztcUpdate(0);
+
+    EXPECT_EQ(MZTC_PALETTE_IRON_RED_1, mztcConfig()->palette_mode);
+    EXPECT_EQ(75, mztcConfig()->contrast);
+    EXPECT_EQ(25, mztcConfig()->digital_enhancement);
+    EXPECT_EQ(10, mztcConfig()->ffc_interval);
+}
+
+// Boot must not reapply. The saved values already reflect the saved preset, so
+// reapplying would discard hand tuning done after the preset was chosen.
+TEST_F(MztcLinkTest, BootDoesNotReapplyTheStoredPreset)
+{
+    mztcConfigMutable()->preset = MZTC_PRESET_FIRE;
+    mztcConfigMutable()->contrast = 33;      // hand tuned after picking FIRE
+
+    // Run the real boot path. mztcInit() returns early while the driver is
+    // already initialised, so without this the test would pass regardless.
+    mztcTestForceReinit();
+    mztcInit();
+
+    mztcUpdate(0);
+    feedReply(0x74, 0x02, 0x03);
+    mztcUpdate(0);
+    mztcUpdate(0);
+
+    EXPECT_EQ(33, mztcConfig()->contrast) << "boot reapplied and lost the tuning";
+    EXPECT_EQ(MZTC_PRESET_FIRE, mztcConfig()->preset);
+}
+
 TEST_F(MztcLinkTest, ThePortAssignmentIsWhatEnablesTheCamera)
 {
     mztcPortAssigned = true;
@@ -688,6 +783,11 @@ timeMs_t millis(void)
 // The Ports tab decides whether the camera exists. Returning a config here is
 // the test equivalent of assigning MZTC_CAMERA to a UART.
 static serialPortConfig_t fakePortConfig;
+
+bool IS_RC_MODE_ACTIVE(boxId_e boxId)
+{
+    return boxId == BOXMZTCCALIBRATE && mztcCalibrateBoxActive;
+}
 
 serialPortConfig_t *findSerialPortConfig(serialPortFunction_e function)
 {

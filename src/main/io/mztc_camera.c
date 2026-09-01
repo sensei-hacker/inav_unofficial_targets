@@ -128,6 +128,10 @@ static bool mztcConfigurationPending = false;
 // Previous state of the THERMAL CALIBRATE switch. The correction runs on the
 // rising edge only, so holding the switch does not fire it every task tick.
 static bool mztcCalibrateBoxWasActive = false;
+// The preset the stored settings currently reflect. Any path that changes
+// mztc_preset is noticed by the task and applied, so "set mztc_preset" behaves
+// the same as the mztc_preset CLI command and MSP2_SET_MZTC_PRESET.
+static uint8_t mztcLastAppliedPreset = MZTC_PRESET_CUSTOM;
 
 // Device identity, filled in from the model and version replies
 static uint8_t mztcDeviceModel[MZTC_MAX_DATA_LEN];
@@ -427,6 +431,8 @@ static void mztcResetLinkState(void)
     mztcProbesSent = 0;
     mztcProbesAnswered = 0;
     mztcConfigurationPending = false;
+    mztcCalibrateBoxWasActive = false;
+    mztcLastAppliedPreset = mztcConfig()->preset;
     mztcDeviceModelLen = 0;
     mztcStatus.connected = false;
     mztcStatus.connection_quality = 0;
@@ -521,6 +527,7 @@ void mztcInit(void)
     memset(&mztcStatus, 0, sizeof(mztcStatus));
     mztcStatus.status = MZTC_STATUS_OFFLINE;
     mztcStatus.preset = mztcConfig()->preset;
+    mztcLastAppliedPreset = mztcConfig()->preset;
     mztcStatus.connected = false;
 
     mztcInitialized = true;
@@ -590,6 +597,12 @@ void mztcUpdate(timeUs_t currentTimeUs)
         mztcTriggerCalibration();
     }
     mztcCalibrateBoxWasActive = calibrateBoxActive;
+
+    // A preset written through the settings framework or "set mztc_preset"
+    // only stores a byte. Applying it here is what makes every path agree.
+    if (mztcConfig()->preset != mztcLastAppliedPreset) {
+        mztcSetPreset((mztcPreset_e)mztcConfig()->preset);
+    }
 
     mztcCheckCalibration();
 
@@ -701,6 +714,7 @@ bool mztcSetPreset(mztcPreset_e preset)
     mztcConfig_t *cfg = mztcConfigMutable();
     cfg->preset = preset;
     mztcStatus.preset = preset;
+    mztcLastAppliedPreset = preset;
 
     // Custom keeps whatever the user configured.
     if (preset == MZTC_PRESET_CUSTOM) {
@@ -950,6 +964,13 @@ void mztcTestReset(void)
     // Any non-null value. Nothing dereferences it, because serialWriteBufShim
     // is stubbed in the test.
     mztcSerialPort = (serialPort_t *)&mztcStatus;
+}
+
+// Clear the initialised flag so a test can run the real mztcInit() boot path.
+// Without this mztcInit() returns immediately and a boot test proves nothing.
+void mztcTestForceReinit(void)
+{
+    mztcInitialized = false;
 }
 
 void mztcTestSetStatus(uint8_t status)
