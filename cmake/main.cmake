@@ -1,15 +1,9 @@
 set(MAIN_INCLUDE_DIRS
     "${MAIN_LIB_DIR}"
     "${MAIN_SRC_DIR}"
+    "${MAIN_LIB_DIR}/main/MAVLink"
     "${MAIN_SRC_DIR}/drivers/dronecan/libcanard"
     "${DSDLC_GENERATED_DIRS}"
-)
-
-# Vendored/generated headers: included as SYSTEM so warnings inherent to
-# their generated code (e.g. -Waddress-of-packed-member in MAVLink's
-# packed structs) don't show up for our own code.
-set(MAIN_SYSTEM_INCLUDE_DIRS
-    "${MAIN_LIB_DIR}/main/MAVLink"
 )
 
 set(MAIN_DEFINITIONS
@@ -83,7 +77,6 @@ function(setup_executable exe name)
     get_generated_files_dir(generated_dir ${name})
     target_compile_options(${exe} PRIVATE ${MAIN_COMPILE_OPTIONS})
     target_include_directories(${exe} PRIVATE ${generated_dir} ${MAIN_INCLUDE_DIRS})
-    target_include_directories(${exe} SYSTEM PRIVATE ${MAIN_SYSTEM_INCLUDE_DIRS})
     target_compile_definitions(${exe} PRIVATE ${MAIN_DEFINITIONS} __TARGET__="${name}" ${name})
     # XXX: Don't make SETTINGS_GENERATED_C part of the build,
     # since it's compiled via #include in settings.c. This will
