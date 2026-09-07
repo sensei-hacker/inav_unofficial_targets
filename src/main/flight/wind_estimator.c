@@ -138,7 +138,7 @@ void updateWindEstimator(timeMs_t currentTimeMs)
     // Fuselage direction in earth frame (radians)
     fuselageDirection[X] = HeadVecEFFiltered.x;
     fuselageDirection[Y] = -HeadVecEFFiltered.y;
-    fuselageDirection[Z] = HeadVecEFFiltered.z;  // NED
+    fuselageDirection[Z] = -HeadVecEFFiltered.z;  // NEU: HeadVecEFFiltered.z is NED, negate to match groundVelocity[Z] (NEU)
 
     // scrap our data and start over if we're taking too long (> 10s) to get a direction change
     if (MS2S(currentTimeMs - lastUseableAttitudeUpdateMs) > 10 || lastUseableAttitudeUpdateMs == 0) {
