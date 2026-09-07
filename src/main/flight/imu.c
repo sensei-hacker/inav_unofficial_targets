@@ -69,7 +69,11 @@
 /*
  *      X-axis = North/Forward
  *      Y-axis = East/Right
- *      Z-axis = Up
+ *      Z-axis = Down
+ *
+ *      This is NED. Some other subsystems (e.g. GPS vertical velocity,
+ *      getEstimatedWindSpeed(Z)) use NEU (Z-axis = Up) instead -- check the
+ *      convention at each boundary rather than assuming it matches.
  */
 
 // the limit (in degrees/second) beyond which we stop integrating
