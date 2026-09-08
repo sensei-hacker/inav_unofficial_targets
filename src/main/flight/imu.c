@@ -68,12 +68,14 @@
 
 /*
  *      X-axis = North/Forward
- *      Y-axis = East/Right
- *      Z-axis = Down
+ *      Y-axis = West        (note: not East -- see the -y flips in
+ *                            imuTransformVectorBodyToEarth(), wind_estimator.c,
+ *                            gps.c and pid.c that convert this to NEU/NED)
+ *      Z-axis = Up
  *
- *      This is NED. Some other subsystems (e.g. GPS vertical velocity,
- *      getEstimatedWindSpeed(Z)) use NEU (Z-axis = Up) instead -- check the
- *      convention at each boundary rather than assuming it matches.
+ *      So the raw earth frame produced by rMat is (North, West, Up) and is
+ *      left-handed. Negating Y gives NEU; negating Y and Z gives NED. Consumers
+ *      differ, so check the convention at each boundary rather than assuming.
  */
 
 // the limit (in degrees/second) beyond which we stop integrating
